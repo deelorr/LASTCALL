@@ -1,0 +1,2267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LAST CALL">
+<meta name="theme-color" content="#0b0a10">
+<link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAIAAACyr5FlAAAB7UlEQVR42u3csQ2DMBBAUbcRHWNkFAoGQEzCINSswBaMwDZmgSgkEkps7km/tizfqwxyah6t9LLkCASH4BAcgkNwCA7BITgEh+CQ4BAcgkNwCA7BITgEh+AoqHnLb4q2MhxwwAEHHHDAAQcccMABBxxwwAEHHHDAAQcccMABBxxwwAEHHHDAAQcccMABBxxwwAGHH4wFh+AQHIJDcAgOwSE4JDhUO459GUIFBxxwwAEHHHDAAQcccMABBxxwwAEHHHDEwhFt/DXSgQMOOOCAAw444IBDcAgOOOCAAw444IADDjjggAMOOOCAAw444IBDcMABBxxwwAHH9+W11w+CQ3AIDsFhcnDAAQcccMABBxxwwAFHfdfnU/fUh4X7tmLkcMABBxxwwAEHHHDAAQcccMABBxxwwCE4BAcccMABBxxwwAEHHHDAAQcccMABhycY5H0OwQEHHHDAAQcccMABBxxwwAEHHHDAcTsc6JQwfjjggAMOOOCAAw444IADDjjggAMOOOCAo5XgEByCQ3AIDsEhOASH4BAcF5fH6S9F2xUccMABBxxwwAEHHHDAAQcccMABBxxwwOH6XHAIDsEhOASH4BAcgsMRCA7BITgEh+AQHIJDcAgOwSHBITgEh+AQHIJDcAgOwSE4JDh02gFhBVvmP976RwAAAABJRU5ErkJggg==">
+<link rel="manifest" href='data:application/manifest+json,{"name":"LAST CALL","short_name":"LAST CALL","display":"standalone","orientation":"portrait","background_color":"%230b0a10","theme_color":"%230b0a10","start_url":"."}'>
+<title>LAST CALL</title>
+<style>
+/* ============================================================
+   LAST CALL 2.0 — UI stylesheet
+   One screen. The line at your thumbs. The room above you.
+   ============================================================ */
+:root{
+  --ink:#0b0a10; --paper:#e8ddc4; --paper-dim:#c9bfa6;
+  --neon:#ff5c7a; --neon2:#5cd6ff; --warm:#ffb14e; --warm-dim:#8a5a2a;
+  --danger:#ff4040; --ok:#7ade6a;
+  --ui-bg:rgba(12,10,18,.86); --ui-edge:#3a3350;
+  --font:'Courier New',ui-monospace,Menlo,Consolas,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+html,body{width:100%;height:100%;overflow:hidden;background:#050408;font-family:var(--font);touch-action:none;overscroll-behavior:none}
+#app{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#050408}
+canvas{image-rendering:pixelated;image-rendering:crisp-edges;display:block}
+#game{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
+
+/* ---------- HUD ---------- */
+#hud{position:absolute;inset:0;pointer-events:none;display:none;z-index:5}
+.hud-chip{background:var(--ui-bg);border:2px solid var(--ui-edge);color:var(--paper);
+  padding:5px 9px;font-size:13px;line-height:1.25;border-radius:2px;text-shadow:0 1px 0 #000}
+#hud-top{position:absolute;top:calc(6px + env(safe-area-inset-top));left:calc(6px + env(safe-area-inset-left));right:calc(6px + env(safe-area-inset-right));display:flex;gap:6px;align-items:flex-start}
+#hud-clock{min-width:84px;text-align:center}
+#hud-clock .t{font-size:16px;letter-spacing:1px;color:var(--warm)}
+#hud-clock .n{font-size:10px;color:var(--paper-dim)}
+#hud-money{color:var(--ok);font-size:14px}
+#hud-chain{font-size:14px}
+#hud-chain .hot{color:var(--warm)}
+#hud-cravings{display:flex;gap:4px;flex-wrap:wrap}
+.crave{background:#2a1530;border:2px solid #6a3d78;color:#f2b6ff;font-size:10px;padding:3px 6px;border-radius:2px}
+#hud-spacer{flex:1}
+#btn-orders{pointer-events:auto;cursor:pointer;min-width:52px;text-align:center}
+#btn-orders.open{border-color:var(--warm-dim);color:var(--warm)}
+#btn-pause{pointer-events:auto;cursor:pointer;font-size:15px;padding:5px 11px;min-width:44px;min-height:32px}
+#btn-pause:active{background:#2a2440}
+#btn-orders{min-height:32px}
+
+/* Hunger meter */
+#hunger-wrap{position:absolute;left:50%;transform:translateX(-50%);top:calc(42px + env(safe-area-inset-top));width:min(380px,72vw);text-align:center}
+#hunger-label{font-size:10px;letter-spacing:2px;color:var(--paper-dim);text-shadow:0 1px 0 #000;margin-bottom:2px}
+#hunger-bar{height:13px;background:#1a1424;border:2px solid var(--ui-edge);position:relative;overflow:hidden}
+#hunger-fill{height:100%;width:0%;background:linear-gradient(90deg,#5a8a4a,#c8a03a,#c85a2a,#a02030);transition:width .5s}
+#hunger-pips{position:absolute;inset:0;display:flex}
+#hunger-pips div{flex:1;border-right:1px solid rgba(0,0,0,.45)}
+#hunger-stage{font-size:10px;letter-spacing:3px;margin-top:2px;color:var(--paper-dim);text-shadow:0 1px 0 #000}
+.hunger-pulse #hunger-bar{animation:hpulse .8s infinite}
+@keyframes hpulse{0%,100%{box-shadow:0 0 0 rgba(255,64,64,0)}50%{box-shadow:0 0 12px rgba(255,64,64,.7)}}
+
+/* Order tickets (collapsible) — high contrast, calm urgency, no strobing */
+#tickets{position:absolute;right:calc(6px + env(safe-area-inset-right));top:calc(80px + env(safe-area-inset-top));width:148px;display:flex;flex-direction:column;gap:6px;pointer-events:none;z-index:5}
+#tickets.collapsed{display:none}
+.ticket{background:#f4ead0;color:#1c170e;border-left:5px solid #a89468;padding:6px 8px 7px;font-size:12px;line-height:1.35;
+  box-shadow:2px 3px 0 rgba(0,0,0,.55);position:relative;animation:tk-in .25s ease-out}
+@keyframes tk-in{from{transform:translateX(60px);opacity:0}to{transform:none;opacity:1}}
+.ticket .tname{font-weight:bold;font-size:13px;letter-spacing:.5px}
+.ticket .tmod{color:#57451a;font-style:italic;font-size:11px}
+.ticket .tnote{color:#8a1f1f;font-style:italic;margin-top:1px;font-size:11px}
+.ticket .tstation{color:#6b5d3c;font-size:10px}
+.ticket .tbar{height:6px;background:#c9bd9c;margin-top:4px;border:1px solid #7c7258}
+.ticket .tbar div{height:100%;background:#3f7a32;width:100%;transition:background-color .4s}
+.ticket.urgent{border-left-color:#a52318;animation:tk-urgent 1.1s ease-in-out infinite}
+@keyframes tk-urgent{0%,100%{box-shadow:2px 3px 0 rgba(0,0,0,.55)}50%{box-shadow:2px 3px 0 rgba(0,0,0,.55),0 0 0 2px rgba(190,45,30,.5)}}
+.ticket.crave-hit{border-left-color:#a04ab0}
+.ticket.crave-hit::after{content:"CRAVING";position:absolute;top:3px;right:4px;font-size:8px;color:#8a3a98;font-weight:bold}
+.ticket.cooking{outline:2px dashed #8a7a4a}
+/* reduce flicker/flash: strip every repeating animation & the CRT layer */
+body.noflick .ticket{animation:none}
+body.noflick .hunger-pulse #hunger-bar{animation:none}
+body.noflick h1.logo .flick{animation:none}
+body.noflick #crt{display:none !important}
+
+/* Toasts */
+#toasts{position:absolute;left:50%;top:calc(96px + env(safe-area-inset-top));transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:4px;pointer-events:none;z-index:20;width:max-content;max-width:88vw}
+.toast{background:var(--ui-bg);border:2px solid var(--ui-edge);color:var(--paper);padding:4px 11px;font-size:12px;animation:toast-io 2.8s forwards;text-align:center}
+.toast.good{border-color:#3a6a3a;color:#a8e89a}
+.toast.bad{border-color:#7a2828;color:#ff9a8a}
+.toast.story{border-color:#5a4a7a;color:#cabaf0;font-style:italic}
+.toast.ach{border-color:#8a7a2a;color:#ffe08a}
+@keyframes toast-io{0%{opacity:0;transform:translateY(-8px)}8%{opacity:1;transform:none}85%{opacity:1}100%{opacity:0}}
+
+/* ---------- Full screens ---------- */
+.screen{position:absolute;inset:0;background:rgba(5,4,10,.92);display:none;z-index:30;
+  align-items:center;justify-content:center;flex-direction:column;color:var(--paper);overflow-y:auto;padding:calc(16px + env(safe-area-inset-top)) 10px calc(16px + env(safe-area-inset-bottom))}
+.screen.show{display:flex}
+.panel{background:#141020;border:3px solid var(--ui-edge);padding:18px 20px;max-width:560px;width:94%;box-shadow:0 8px 40px #000}
+h1.logo{font-size:min(52px,12vw);letter-spacing:6px;color:var(--neon);text-shadow:0 0 18px rgba(255,92,122,.55),0 3px 0 #000;margin-bottom:2px;text-align:center}
+h1.logo .flick{animation:flick 4s infinite}
+@keyframes flick{0%,92%,96%,100%{opacity:1}93%,95%{opacity:.25}}
+.tagline{text-align:center;color:var(--paper-dim);font-size:12px;letter-spacing:2px;margin-bottom:20px}
+h2.head{color:var(--warm);font-size:16px;letter-spacing:2px;margin-bottom:10px;text-align:center}
+.btn{display:block;width:100%;margin:7px 0;padding:13px 14px;background:#1e1830;border:2px solid var(--ui-edge);
+  color:var(--paper);font-family:var(--font);font-size:15px;letter-spacing:1px;cursor:pointer;text-align:center}
+.btn:hover,.btn:focus{background:#2c2444;border-color:#5a4d80;outline:none}
+.btn:active{transform:translateY(1px)}
+.btn.primary{border-color:var(--warm-dim);color:var(--warm)}
+.btn.primary:hover{background:#33261a;border-color:var(--warm)}
+.btn.danger{color:#ff8a7a}
+.btn:disabled{opacity:.38;cursor:default}
+.small{font-size:11px;color:var(--paper-dim);line-height:1.5}
+.kv{display:flex;justify-content:space-between;font-size:13px;padding:3px 0;border-bottom:1px dashed #2a2440}
+.kv b{color:var(--warm)}
+.setrow{display:flex;align-items:center;gap:10px;margin:10px 0;font-size:13px}
+.setrow label{flex:1}
+.setrow input[type=range]{flex:1.2;accent-color:var(--warm)}
+.setrow .togg{width:64px;text-align:center;padding:6px;background:#1e1830;border:2px solid var(--ui-edge);cursor:pointer;color:var(--paper)}
+.setrow .togg.on{color:var(--ok);border-color:#3a6a3a}
+.shop-item{display:flex;gap:10px;align-items:center;background:#191428;border:2px solid #2a2440;padding:8px 10px;margin:6px 0}
+.shop-item .si-info{flex:1}
+.shop-item .si-name{font-size:13px;color:var(--paper)}
+.shop-item .si-desc{font-size:11px;color:var(--paper-dim)}
+.shop-item .si-buy{padding:9px 12px;background:#1e2a1a;border:2px solid #3a5a30;color:var(--ok);font-family:var(--font);cursor:pointer;font-size:13px;min-width:70px}
+.shop-item .si-buy:disabled{opacity:.35;cursor:default}
+.shop-item.owned{opacity:.55}
+.shop-tabs{display:flex;gap:6px;margin-bottom:8px}
+.shop-tabs .btn{margin:0;padding:9px}
+.shop-tabs .btn.sel{background:#33261a;border-color:var(--warm);color:var(--warm)}
+.mrow{display:flex;align-items:center;gap:8px;font-size:12px;padding:5px 0;border-bottom:1px dashed #2a2440}
+.mrow .mname{width:110px}
+.mrow .mbar{flex:1;height:8px;background:#241e38;border:1px solid var(--ui-edge)}
+.mrow .mbar div{height:100%;background:var(--warm)}
+.mrow .mlvl{width:56px;text-align:right;color:var(--warm)}
+.mrow.locked{opacity:.4}
+.receipt{background:var(--paper);color:#241f16;padding:14px 16px;font-size:12px;line-height:1.7;
+  width:100%;max-width:300px;margin:0 auto 14px;box-shadow:3px 4px 0 rgba(0,0,0,.6)}
+.receipt .rc{text-align:center}.receipt .rl{display:flex;justify-content:space-between}
+.receipt .dots{border-bottom:1px dashed #8a8068;margin:6px 0}
+.receipt .creepy{color:#7a2020;font-style:italic;text-align:center;margin-top:8px}
+
+#vignette{position:absolute;inset:0;pointer-events:none;z-index:4;
+  background:radial-gradient(ellipse at center,transparent 62%,rgba(0,0,0,.36) 100%);display:none}
+#redflash{position:absolute;inset:0;pointer-events:none;z-index:9;background:#600;opacity:0;transition:opacity .3s}
+#crt{position:absolute;inset:0;pointer-events:none;z-index:7;display:none;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.09) 0 1px,transparent 1px 4px);}
+#crt::after{content:"";position:absolute;inset:0;
+  background:radial-gradient(ellipse at center,transparent 66%,rgba(12,6,24,.24) 100%);}
+#crt::before{content:"";position:absolute;inset:0;
+  background:linear-gradient(90deg,rgba(255,60,60,.03),transparent 30%,transparent 70%,rgba(60,120,255,.03));}
+#crt.flick{animation:crtflick 7s infinite}
+@keyframes crtflick{0%,100%{opacity:.9}48%{opacity:.9}49%{opacity:.62}50%{opacity:.9}83%{opacity:.9}84%{opacity:.72}85%{opacity:.9}}
+</style>
+</head>
+<body>
+<div id="app">
+  <canvas id="game" width="240" height="352"></canvas>
+  <div id="vignette"></div>
+  <div id="crt"></div>
+  <div id="redflash"></div>
+
+  <div id="hud">
+    <div id="hud-top">
+      <div class="hud-chip" id="hud-clock"><div class="t">2:17 AM</div><div class="n">NIGHT 1</div></div>
+      <div class="hud-chip" id="hud-money">$0</div>
+      <div class="hud-chip" id="hud-chain">⛓ 0</div>
+      <div id="hud-cravings"></div>
+      <div id="hud-spacer"></div>
+      <div class="hud-chip open" id="btn-orders">🧾 0</div>
+      <div class="hud-chip" id="btn-pause">II</div>
+    </div>
+    <div id="hunger-wrap">
+      <div id="hunger-label">THE HUNGER</div>
+      <div id="hunger-bar"><div id="hunger-fill"></div><div id="hunger-pips"><div></div><div></div><div></div><div></div><div></div></div></div>
+      <div id="hunger-stage">SATISFIED</div>
+    </div>
+  </div>
+
+  <div id="tickets"></div>
+  <div id="toasts"></div>
+
+  <!-- ============ SCREENS ============ -->
+  <div class="screen show" id="scr-title">
+    <h1 class="logo">LAST C<span class="flick">A</span>LL</h1>
+    <div class="tagline">KEEP COOKING. THEY'RE COUNTING ON YOU.</div>
+    <div class="panel" style="max-width:340px">
+      <button class="btn primary" id="bt-start">CLOCK IN</button>
+      <button class="btn" id="bt-howto">HOW TO PLAY</button>
+      <button class="btn" id="bt-mastery">RECIPE MASTERY</button>
+      <button class="btn" id="bt-stats">RECORDS</button>
+      <button class="btn" id="bt-settings">SETTINGS</button>
+      <div class="small" style="text-align:center;margin-top:10px" id="title-sub">Every night at 2:17 AM, the world changes.</div>
+    </div>
+  </div>
+
+  <div class="screen" id="scr-howto"><div class="panel">
+    <h2 class="head">HOW TO PLAY</h2>
+    <div class="small">
+      <p>You work the line at a roadside diner. At <b style="color:var(--warm)">2:17 AM</b> the printer starts. Nobody orders the food. Something eats it anyway.</p><br>
+      <p><b>TAP a station</b> — start cooking its ticket, or act on the current step (flip, stop the heat, season). Green zone = good. Past the end = burned.<br>
+      <b>HOLD a station</b> — pour, and fix things: mop spills, reset breakers, close gas valves, clear jams. Hold windows to board them.<br>
+      <b>TAP a finished plate</b> — send it to the pass. That's the only way the meter goes down.</p><br>
+      <p>You can run <b>every station at once</b>. You will have to.</p><br>
+      <p>Every serve lowers <b style="color:var(--danger)">THE HUNGER</b>. Every lost ticket feeds it. Chains multiply pay — and hurt more when they snap.</p><br>
+      <p>There are customers in the booths. Nobody came in. Don't stare.</p><br>
+      <p>Survive until 6:00 AM. Then do it again.</p>
+    </div>
+    <button class="btn" data-close>BACK</button>
+  </div></div>
+
+  <div class="screen" id="scr-settings"><div class="panel">
+    <h2 class="head">SETTINGS</h2>
+    <div class="setrow"><label>Master volume</label><input type="range" id="set-master" min="0" max="100" value="80"></div>
+    <div class="setrow"><label>Ambience</label><input type="range" id="set-amb" min="0" max="100" value="80"></div>
+    <div class="setrow"><label>Effects</label><input type="range" id="set-sfx" min="0" max="100" value="90"></div>
+    <div class="setrow"><label>Screen shake</label><div class="togg on" id="set-shake">ON</div></div>
+    <div class="setrow"><label>Reduce flicker &amp; flashes</label><div class="togg" id="set-flicker">OFF</div></div>
+    <div class="setrow"><label>High-contrast tickets</label><div class="togg" id="set-contrast">OFF</div></div>
+    <button class="btn" data-close>BACK</button>
+  </div></div>
+
+  <div class="screen" id="scr-mastery"><div class="panel">
+    <h2 class="head">RECIPE MASTERY</h2>
+    <div id="mastery-list"></div>
+    <div class="small" style="margin-top:8px">Mastery widens timing windows, boosts pay, and unlocks signature plating at Lv.5.</div>
+    <button class="btn" data-close>BACK</button>
+  </div></div>
+
+  <div class="screen" id="scr-stats"><div class="panel">
+    <h2 class="head">RECORDS</h2>
+    <div id="stats-list"></div>
+    <div id="ach-list" style="margin-top:10px"></div>
+    <button class="btn" data-close>BACK</button>
+  </div></div>
+
+  <div class="screen" id="scr-pause"><div class="panel" style="max-width:320px">
+    <h2 class="head">PAUSED</h2>
+    <div class="small" style="text-align:center;margin-bottom:10px" id="pause-flavor">The rain keeps falling.</div>
+    <button class="btn primary" id="bt-resume">RESUME</button>
+    <button class="btn" id="bt-pause-settings">SETTINGS</button>
+    <button class="btn danger" id="bt-quit">ABANDON SHIFT</button>
+  </div></div>
+
+  <div class="screen" id="scr-summary"><div class="panel">
+    <h2 class="head" id="sum-title">6:00 AM — YOU MADE IT</h2>
+    <div class="receipt" id="sum-receipt"></div>
+    <button class="btn primary" id="bt-shop">RESTOCK &amp; UPGRADE</button>
+  </div></div>
+
+  <div class="screen" id="scr-shop"><div class="panel">
+    <h2 class="head">DAWN DELIVERIES <span style="color:var(--ok)" id="shop-money"></span></h2>
+    <div class="shop-tabs">
+      <button class="btn sel" id="tab-upg">UPGRADES</button>
+      <button class="btn" id="tab-sup">SUPPLIES</button>
+    </div>
+    <div id="shop-list" style="max-height:46vh;overflow-y:auto"></div>
+    <button class="btn primary" id="bt-nextnight">NEXT NIGHT ▸</button>
+  </div></div>
+
+  <div class="screen" id="scr-gameover"><div class="panel" style="max-width:380px">
+    <h2 class="head" style="color:var(--danger)" id="go-title">THE DINER GOES QUIET</h2>
+    <div class="receipt" id="go-receipt"></div>
+    <div class="small" style="text-align:center;margin-bottom:8px">Mastery and upgrades survive. You... reconsider your career. And come back anyway.</div>
+    <button class="btn primary" id="bt-retry">ONE MORE NIGHT</button>
+    <button class="btn" id="bt-title">TITLE</button>
+  </div></div>
+</div>
+
+<script>
+"use strict";
+/* ==================================================================
+   LAST CALL 2.0
+   One screen. No walking. The line never stops.
+
+   The player IS the cooking line: every station is a direct tap
+   target, every dish runs concurrently, every emergency competes
+   for the same pair of thumbs. Cooking is survival.
+
+   MODULES: Data / Save / Sound / Input / World (map, no avatar)
+            Line (concurrent station slots — the heart of 2.0)
+            Orders / Mastery / Hunger / Events / Diner / Render /
+            UI / Game
+   ================================================================== */
+
+/* ================================ DATA ================================ */
+const Data = (() => {
+  const ING = {
+    bun_b:{n:"Bun",     c:"#d9a05a"}, patty:{n:"Patty",   c:"#7a4a2a"},
+    cheese:{n:"Cheese", c:"#f0c040"}, lettuce:{n:"Lettuce",c:"#7ab84a"},
+    tomato:{n:"Tomato", c:"#d04a3a"}, onion:{n:"Onions",  c:"#d8c8e8"},
+    pickle:{n:"Pickles",c:"#5a8a3a"}, bun_t:{n:"Top Bun", c:"#e0aa60"},
+    bread:{n:"Bread",   c:"#caa26a"}, ham:{n:"Ham",       c:"#e08a8a"},
+    turkey:{n:"Turkey", c:"#d8b088"}, mayo:{n:"Mayo",     c:"#f0ead0"},
+    bread2:{n:"Bread",  c:"#caa26a"}, broth:{n:"Broth",   c:"#c89a4a"},
+    carrot:{n:"Carrots",c:"#e08a3a"}, celery:{n:"Celery", c:"#9ac86a"},
+    noodle:{n:"Noodles",c:"#e8d8a8"}, chicken:{n:"Chicken",c:"#d8c0a0"},
+    sugar:{n:"Sugar",   c:"#ffffff"},
+  };
+
+  /* STEP TYPES — all designed for glanceable, concurrent play:
+     stop  : heat bar rises over the station — tap in the zone, or it burns
+     gauge : needle sweeps — tap/swipe in the green (auto-fizzles if ignored)
+     fill  : hold the station to pour — release at the line (overflow = puddle!)
+     shake : tap fast when prompted — basket shake / grind / season
+     stir  : froth keeps rising — tap rhythm keeps it down (boil-over = puddle)
+     seq   : tap the station to open the tray, stack ingredients in order   */
+  const RECIPES = {
+    burger:{ name:"Burger", station:"grill", cat:"grill", price:9, hunger:10, unlock:1,
+      desc:"The classic. Sear, flip, stack.",
+      steps:[
+        {t:"stop",  label:"SEAR",    zone:[0.52,0.74], speed:0.20, burn:true},
+        {t:"gauge", label:"FLIP!",   zone:0.17, speed:1.35, life:7},
+        {t:"stop",  label:"SEAR 2",  zone:[0.50,0.72], speed:0.22, burn:true},
+        {t:"seq",   label:"BUILD",   items:["bun_b","patty","cheese","lettuce","tomato","onion","pickle","bun_t"]},
+      ]},
+    fries:{ name:"Fries", station:"fryer", cat:"fried", price:5, hunger:6, unlock:1,
+      desc:"Golden. Never soggy, never coal.",
+      steps:[
+        {t:"stop",  label:"FRY",     zone:[0.55,0.80], speed:0.18, burn:true},
+        {t:"shake", label:"SHAKE!",  taps:6, time:3.2},
+        {t:"gauge", label:"SEASON",  zone:0.19, speed:1.2, life:7},
+      ]},
+    coffee:{ name:"Coffee", station:"coffee", cat:"coffee", price:4, hunger:5, unlock:1,
+      desc:"Black as the parking lot.",
+      steps:[
+        {t:"shake", label:"GRIND",   taps:5, time:3.0, skipUpg:"coffee2"},
+        {t:"stop",  label:"BREW",    zone:[0.48,0.74], speed:0.18, burn:true},
+        {t:"fill",  label:"POUR",    target:0.78, speed:0.5},
+      ]},
+    eggs:{ name:"Eggs", station:"stove", cat:"breakfast", price:6, hunger:7, unlock:2,
+      desc:"Crack clean. No shells. Ever.",
+      steps:[
+        {t:"gauge", label:"CRACK",   zone:0.16, speed:1.2, life:7},
+        {t:"gauge", label:"CRACK 2", zone:0.16, speed:1.3, life:7},
+        {t:"stop",  label:"COOK",    zone:[0.45,0.70], speed:0.19, burn:true, modZone:"eggstyle"},
+      ]},
+    pancakes:{ name:"Pancakes", station:"stove", cat:"sweet", price:7, hunger:8, unlock:3,
+      desc:"Pour steady. Flip brave.",
+      steps:[
+        {t:"fill",  label:"POUR",    target:0.62, speed:0.55},
+        {t:"stop",  label:"BUBBLES", zone:[0.55,0.78], speed:0.18, burn:true},
+        {t:"gauge", label:"THE FLIP",zone:0.14, speed:1.5, life:6},
+        {t:"stop",  label:"GOLDEN",  zone:[0.45,0.72], speed:0.21, burn:true},
+      ]},
+    sandwich:{ name:"Club Sandwich", station:"prep", cat:"bread", price:7, hunger:8, unlock:4,
+      desc:"Order matters. It always matters.",
+      steps:[
+        {t:"seq",   label:"STACK",   items:["bread","mayo","turkey","ham","lettuce","tomato","bread2"]},
+        {t:"stop",  label:"TOAST",   zone:[0.42,0.68], speed:0.20, burn:true},
+        {t:"gauge", label:"SLICE",   zone:0.15, speed:1.4, life:7},
+      ]},
+    soup:{ name:"Soup of the Night", station:"stove", cat:"soup", price:8, hunger:9, unlock:5,
+      desc:"Tap to stir. Don't let it climb the pot.",
+      steps:[
+        {t:"seq",   label:"THE POT", items:["broth","chicken","carrot","celery","noodle"]},
+        {t:"stir",  label:"STIR!",   dur:7},
+        {t:"stop",  label:"LADLE",   zone:[0.50,0.76], speed:0.22, burn:true},
+      ]},
+    steak:{ name:"Steak", station:"grill", cat:"grill", price:14, hunger:12, unlock:6,
+      desc:"They always know if you rushed the rest.",
+      steps:[
+        {t:"stop",  label:"SEAR",    zone:[0.5,0.72], speed:0.19, burn:true, modZone:"doneness"},
+        {t:"gauge", label:"FLIP",    zone:0.14, speed:1.45, life:6},
+        {t:"stop",  label:"SIDE 2",  zone:[0.5,0.72], speed:0.21, burn:true, modZone:"doneness"},
+        {t:"stop",  label:"REST",    zone:[0.55,0.88], speed:0.13},
+      ]},
+  };
+
+  const MODIFIERS = {
+    burger:[
+      {txt:"No onions.",  chance:.22, drop:["onion"]},
+      {txt:"No pickles.", chance:.18, drop:["pickle"]},
+      {txt:"Extra cheese.",chance:.15, add:["cheese"]},
+      {txt:"Plain. Just meat and bread.", chance:.07, drop:["cheese","lettuce","tomato","onion","pickle"]},
+    ],
+    steak:[
+      {txt:"Rare.",   chance:.3, doneness:[0.30,0.50]},
+      {txt:"Medium rare.", chance:.3, doneness:[0.42,0.62]},
+      {txt:"Well done.", chance:.2, doneness:[0.64,0.86]},
+    ],
+    eggs:[
+      {txt:"Sunny side up.", chance:.35, eggstyle:[0.34,0.54]},
+      {txt:"Over hard.", chance:.25, eggstyle:[0.58,0.80]},
+    ],
+    sandwich:[
+      {txt:"No tomato.", chance:.2, drop:["tomato"]},
+      {txt:"Double turkey.", chance:.15, add:["turkey"]},
+    ],
+    coffee:[
+      {txt:"Black.", chance:.3},
+      {txt:"Two sugars.", chance:.2, add:["sugar","sugar"]},
+    ],
+    pancakes:[{txt:"Short stack.", chance:.2}],
+    fries:[{txt:"Extra crispy.", chance:.2, fryzone:[0.66,0.90]}],
+    soup:[{txt:"Hot. Hotter than that.", chance:.2}],
+  };
+
+  const CRAVING_NAMES = {grill:"GRILLED", fried:"FRIED", coffee:"COFFEE", breakfast:"BREAKFAST", sweet:"SWEET", bread:"FRESH BREAD", soup:"SOUP"};
+
+  const STAGES = [
+    {min:0,  name:"SATISFIED",   amb:0.10},
+    {min:20, name:"RESTLESS",    amb:0.30},
+    {min:40, name:"WATCHING",    amb:0.55},
+    {min:60, name:"HUNTING",     amb:0.80},
+    {min:80, name:"FEEDING TIME",amb:1.00},
+  ];
+
+  const UPGRADES = [
+    {id:"shoes1",  name:"Sharp Spatula",     cost:40,  desc:"Needles sweep 10% slower.", req:null},
+    {id:"shoes2",  name:"Line Instincts",    cost:130, desc:"Ignored steps wait 25% longer before fizzling.", req:"shoes1"},
+    {id:"grill2",  name:"Cast Iron Grill",   cost:90,  desc:"Wider timing windows on grill dishes."},
+    {id:"fryer2",  name:"Steady Fryer",      cost:90,  desc:"Fryer heat bars rise 20% slower."},
+    {id:"coffee2", name:"Burr Grinder",      cost:70,  desc:"Coffee grinds itself. One less step."},
+    {id:"prep2",   name:"Mise en Place",     cost:65,  desc:"First assembly mistake per dish is forgiven."},
+    {id:"rail1",   name:"Longer Ticket Rail",cost:100, desc:"Hold 5 orders at once."},
+    {id:"rail2",   name:"Double Rail",       cost:220, desc:"Hold 6 orders at once.", req:"rail1"},
+    {id:"gen2",    name:"Efficient Generator",cost:120,desc:"Fuel drains 35% slower."},
+    {id:"lights",  name:"New Ballasts",      cost:85,  desc:"Brighter kitchen. Less flicker."},
+    {id:"fridge2", name:"Walk-in Seals",     cost:110, desc:"Ingredients never spoil."},
+    {id:"bell",    name:"Order Bell",        cost:80,  desc:"Tickets wait 15% longer."},
+    {id:"carry2",  name:"Second Grill Pan",  cost:140, desc:"The grill runs two dishes at once."},
+  ];
+  const SUPPLIES = [
+    {id:"fuel",   name:"Fuel Can",   cost:14, desc:"One generator refill.", max:6},
+    {id:"boards", name:"Plywood x2", cost:10, desc:"Board up broken windows.", max:8, amt:2},
+  ];
+
+  const NOTES = {
+    early:[ "extra napkins", "to go. no bag.", "same as always", "quickly please", "extra coffee." ],
+    mid:[ "like yesterday.", "you forgot the pickles.", "you forgot the salt.", "don't burn this one.",
+          "you burned this.", "we can smell it from here.", "the coffee was cold last time.",
+          "more. make more.", "the booth is cold tonight." ],
+    late:[ "we're still waiting.", "table seven has been patient.", "the last meal wasn't enough.",
+           "we're outside.", "we're hungry.", "the window tastes like rain.", "we counted the boards.",
+           "your car looks lonely.", "the lock is old.", "one of us is already seated.",
+           "we liked the one at 3:12. make it again.", "why did the lights go out?",
+           "stop looking at the booths." ],
+    feeding:[ "OPEN THE DOOR", "WE ARE SO EMPTY", "TABLE SEVEN IS STANDING UP",
+              "IT'S COLD OUT HERE", "YOU SMELL LIKE THE FOOD", "LAST CALL. LAST CALL. LAST CALL." ],
+  };
+  const NIGHT_INTRO = [
+    "2:17 AM. The printer wakes up.",
+    "2:17 AM. Right on time. It's always right on time.",
+    "2:17 AM. The rain started the moment the clock turned.",
+    "2:17 AM. You didn't hear a car pull in. You never do.",
+    "2:17 AM. Something brushed the door on your way in. Probably wind.",
+    "2:17 AM. The radio hums a station that shouldn't exist.",
+    "2:17 AM. There are more of them tonight. You can feel it.",
+  ];
+  const GAMEOVER_LINES = [
+    "ORDER #000", "TABLE: ALL OF THEM", "ITEM: —", "", "        WE'RE INSIDE", "",
+    "THANK YOU FOR COOKING", "PLEASE COME AGAIN",
+  ];
+
+  const ACHIEVEMENTS = [
+    {id:"night1",  name:"First Shift",      desc:"Survive your first night."},
+    {id:"chain10", name:"In the Weeds",     desc:"Reach a 10 order chain."},
+    {id:"chain25", name:"Flow State",       desc:"Reach a 25 order chain."},
+    {id:"first5",  name:"Chef's Kiss",      desc:"Serve a ★★★★★ meal."},
+    {id:"master1", name:"Signature Dish",   desc:"Master any recipe to Lv.5."},
+    {id:"night7",  name:"Regular",          desc:"Survive 7 nights in one run."},
+    {id:"rich",    name:"Tip Jar Overflow", desc:"Hold $500 at once."},
+    {id:"nomiss",  name:"Clean Ticket Rail",desc:"Finish a night without missing an order."},
+    {id:"stage5",  name:"They Were So Close",desc:"Recover from FEEDING TIME."},
+    {id:"allrec",  name:"Full Menu",        desc:"Unlock every recipe."},
+    {id:"dark",    name:"Cooked Blind",     desc:"Serve a meal during a blackout."},
+    {id:"crave50", name:"Know Your Customer",desc:"Serve 50 craving matches (lifetime)."},
+    {id:"fivepan", name:"Everything Everywhere",desc:"Have 4 dishes cooking at once."},
+  ];
+
+  const CHAIN_MILESTONES = {5:{money:10,txt:"CHAIN x5 — $10 tip"},10:{money:25,txt:"CHAIN x10 — $25 + calm"},
+    15:{money:40,txt:"CHAIN x15 — $40 tip"},20:{money:60,txt:"CHAIN x20 — $60 + calm"},25:{money:100,txt:"CHAIN x25 — $100!!"}};
+
+  return {ING,RECIPES,MODIFIERS,CRAVING_NAMES,STAGES,UPGRADES,SUPPLIES,NOTES,NIGHT_INTRO,GAMEOVER_LINES,ACHIEVEMENTS,CHAIN_MILESTONES};
+})();
+
+/* ================================ SAVE ================================ */
+const Save = (() => {
+  const KEY = "lastcall_v2";
+  const def = () => ({
+    ver:2, money:0, bestNight:0, bestChain:0, totalServed:0, totalPerfect:0,
+    totalNights:0, craveServed:0, mastery:{}, upgrades:{}, supplies:{fuel:2,boards:4},
+    achievements:{}, settings:{master:.8,amb:.8,sfx:.9,shake:true,flicker:false,contrast:false},
+    seenTutorial:false, runNight:1, runActive:false,
+  });
+  let data = def();
+  try {
+    const raw = localStorage.getItem(KEY) || localStorage.getItem("lastcall_v1");
+    if (raw) data = Object.assign(def(), JSON.parse(raw), {ver:2});
+  } catch(e){}
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(data)); } catch(e){} };
+  return { data, save, reset(){ data = def(); save(); } };
+})();
+
+/* ================================ SOUND ================================ */
+const Sound = (() => {
+  let ctx=null, master=null, ambBus=null, sfxBus=null, started=false;
+  const S = Save.data.settings;
+  const loops = {};
+
+  function init(){
+    if (started) return;
+    started = true;
+    ctx = new (window.AudioContext||window.webkitAudioContext)();
+    master = ctx.createGain(); master.connect(ctx.destination);
+    ambBus = ctx.createGain(); ambBus.connect(master);
+    sfxBus = ctx.createGain(); sfxBus.connect(master);
+    applyVolumes();
+    startRain(); startHum(); startDrone();
+  }
+  function applyVolumes(){
+    if (!ctx) return;
+    master.gain.value = S.master; ambBus.gain.value = S.amb; sfxBus.gain.value = S.sfx;
+  }
+  function noiseBuffer(sec=2){
+    const b = ctx.createBuffer(1, ctx.sampleRate*sec, ctx.sampleRate);
+    const d = b.getChannelData(0);
+    for (let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
+    return b;
+  }
+  function startRain(){
+    const src=ctx.createBufferSource(); src.buffer=noiseBuffer(3); src.loop=true;
+    const f=ctx.createBiquadFilter(); f.type="bandpass"; f.frequency.value=900; f.Q.value=0.6;
+    const g=ctx.createGain(); g.gain.value=0.05;
+    src.connect(f); f.connect(g); g.connect(ambBus); src.start();
+    loops.rain=g;
+  }
+  function startHum(){
+    const o=ctx.createOscillator(); o.type="sawtooth"; o.frequency.value=54;
+    const o2=ctx.createOscillator(); o2.type="sine"; o2.frequency.value=108.5;
+    const g=ctx.createGain(); g.gain.value=0.018;
+    const f=ctx.createBiquadFilter(); f.type="lowpass"; f.frequency.value=220;
+    o.connect(f); o2.connect(f); f.connect(g); g.connect(ambBus); o.start(); o2.start();
+    loops.hum=g;
+  }
+  function startDrone(){
+    const o=ctx.createOscillator(); o.type="triangle"; o.frequency.value=38;
+    const lfo=ctx.createOscillator(); lfo.frequency.value=0.11;
+    const lg=ctx.createGain(); lg.gain.value=8;
+    lfo.connect(lg); lg.connect(o.frequency);
+    const g=ctx.createGain(); g.gain.value=0;
+    o.connect(g); g.connect(ambBus); o.start(); lfo.start();
+    loops.drone=g; loops.droneOsc=o;
+    const src=ctx.createBufferSource(); src.buffer=noiseBuffer(2); src.loop=true;
+    const f=ctx.createBiquadFilter(); f.type="highpass"; f.frequency.value=3000;
+    const sg=ctx.createGain(); sg.gain.value=0;
+    src.connect(f); f.connect(sg); sg.connect(ambBus); src.start();
+    loops.static=sg;
+  }
+  let sizzleG=null;
+  function setSizzle(on){ // any hot station cooking
+    if (!ctx) return;
+    if (on && !sizzleG){
+      const src=ctx.createBufferSource(); src.buffer=noiseBuffer(2); src.loop=true;
+      const f=ctx.createBiquadFilter(); f.type="bandpass"; f.frequency.value=4200; f.Q.value=0.8;
+      const g=ctx.createGain(); g.gain.value=0.0;
+      src.connect(f); f.connect(g); g.connect(sfxBus); src.start();
+      g.gain.linearRampToValueAtTime(0.09, ctx.currentTime+0.15);
+      sizzleG={g,src};
+    } else if (!on && sizzleG){
+      const s=sizzleG; sizzleG=null;
+      s.g.gain.linearRampToValueAtTime(0, ctx.currentTime+0.2);
+      setTimeout(()=>{ try{s.src.stop();}catch(e){} }, 400);
+    }
+  }
+  function setAmbience(stage01, powerOn, rainMul){
+    if (!ctx) return;
+    const t=ctx.currentTime;
+    loops.drone.gain.linearRampToValueAtTime(0.02+stage01*0.055, t+1.5);
+    loops.static.gain.linearRampToValueAtTime(stage01>0.5? (stage01-0.5)*0.05 : 0, t+1.5);
+    loops.hum.gain.linearRampToValueAtTime(powerOn?0.018:0.0, t+0.5);
+    loops.rain.gain.linearRampToValueAtTime(0.03+0.05*rainMul, t+2);
+    if (loops.droneOsc && stage01>0.5 && Math.random()<0.35)
+      loops.droneOsc.frequency.value = 38*(1+(Math.random()-0.5)*stage01*0.35);
+  }
+  function env(g, a, d, peak){ const t=ctx.currentTime;
+    g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(peak,t+a); g.gain.exponentialRampToValueAtTime(0.0001,t+a+d); }
+  function tone(freq, type, a, d, peak, detuneEnd){
+    if (!ctx) return;
+    const o=ctx.createOscillator(); o.type=type; o.frequency.value=freq;
+    if (detuneEnd) o.frequency.exponentialRampToValueAtTime(detuneEnd, ctx.currentTime+a+d);
+    const g=ctx.createGain(); env(g,a,d,peak); o.connect(g); g.connect(sfxBus);
+    o.start(); o.stop(ctx.currentTime+a+d+0.05);
+  }
+  function noise(a,d,peak,fFreq,fType="bandpass"){
+    if (!ctx) return;
+    const src=ctx.createBufferSource(); src.buffer=noiseBuffer(a+d+0.1);
+    const f=ctx.createBiquadFilter(); f.type=fType; f.frequency.value=fFreq;
+    const g=ctx.createGain(); env(g,a,d,peak);
+    src.connect(f); f.connect(g); g.connect(sfxBus); src.start();
+  }
+  const fx = {
+    ui(){ tone(660,"square",0.005,0.05,0.05); },
+    tick(){ tone(880,"square",0.003,0.03,0.04); },
+    printer(){
+      if (!ctx) return;
+      for (let i=0;i<9;i++) setTimeout(()=>tone(1400+Math.random()*500,"square",0.004,0.02,0.05), i*38);
+      setTimeout(()=>noise(0.01,0.12,0.06,600,"lowpass"), 380);
+    },
+    bell(){ tone(1760,"sine",0.004,0.7,0.16); tone(2217,"sine",0.004,0.5,0.08); },
+    serve(){ tone(520,"triangle",0.01,0.18,0.1); setTimeout(()=>tone(780,"triangle",0.01,0.22,0.1),90); },
+    perfect(){ [523,659,784,1046].forEach((f,i)=>setTimeout(()=>tone(f,"triangle",0.01,0.3,0.11),i*80)); },
+    combo(n){ // rising chain arpeggio — the addictive one
+      const base=440*Math.pow(1.06,Math.min(24,n));
+      [0,4,7].forEach((s,i)=>setTimeout(()=>tone(base*Math.pow(1.0595,s),"triangle",0.008,0.22,0.1),i*55));
+    },
+    woosh(){ noise(0.03,0.22,0.09,2000,"highpass"); },
+    plate(){ tone(1320,"sine",0.003,0.15,0.08); noise(0.004,0.06,0.05,3000); },
+    burn(){ noise(0.02,0.5,0.14,300,"lowpass"); tone(140,"sawtooth",0.02,0.4,0.08,60); },
+    fail(){ tone(196,"sawtooth",0.02,0.35,0.1,110); },
+    flip(){ noise(0.005,0.09,0.1,2400); },
+    pour(){ noise(0.05,0.4,0.07,1200); },
+    chop(){ noise(0.004,0.06,0.13,900,"lowpass"); },
+    stampGood(){ tone(392,"triangle",0.01,0.15,0.09); },
+    doorShake(){ noise(0.01,0.25,0.16,180,"lowpass"); setTimeout(()=>noise(0.01,0.2,0.12,220,"lowpass"),160); },
+    scratch(){ for(let i=0;i<4;i++) setTimeout(()=>noise(0.008,0.1,0.05,2600+Math.random()*800),i*90); },
+    thunder(){ noise(0.08,2.6,0.22,120,"lowpass"); },
+    footstep(){ noise(0.006,0.12,0.05,150,"lowpass"); },
+    powerDown(){ tone(220,"sawtooth",0.02,1.1,0.12,40); },
+    powerUp(){ tone(80,"sawtooth",0.4,0.6,0.1,220); setTimeout(()=>fx.ui(),700); },
+    alarm(){ tone(880,"square",0.01,0.18,0.07); setTimeout(()=>tone(880,"square",0.01,0.18,0.07),260); },
+    whisper(){ noise(0.3,1.4,0.045,900); noise(0.5,1.8,0.03,1400); },
+    boardUp(){ noise(0.005,0.08,0.12,500,"lowpass"); setTimeout(()=>noise(0.005,0.08,0.12,450,"lowpass"),140); },
+    scream(){ tone(1180,"sawtooth",0.04,0.9,0.06,290); tone(880,"sawtooth",0.06,1.1,0.045,170); },
+    hiss(){ noise(0.2,2.2,0.05,5200,"highpass"); },
+    drip(){ tone(900,"sine",0.004,0.09,0.06,500); setTimeout(()=>tone(700,"sine",0.004,0.12,0.05,400),220); },
+    crash(){ noise(0.01,0.6,0.2,400,"lowpass"); setTimeout(()=>noise(0.01,0.3,0.12,700,"lowpass"),130); },
+    spark(){ noise(0.005,0.15,0.14,4000,"highpass"); tone(1800,"square",0.005,0.1,0.06,300); },
+    breath(){ noise(0.5,1.2,0.035,500); setTimeout(()=>noise(0.6,1.4,0.028,420),2100); },
+    eat(){ noise(0.1,0.7,0.05,700,"lowpass"); setTimeout(()=>tone(60,"sine",0.05,0.6,0.07),200); },
+  };
+  return { init, applyVolumes, setAmbience, setSizzle, fx, get ready(){return started;} };
+})();
+
+/* ================================ INPUT ================================
+   2.0 is pure pointer: tap, hold, swipe. No joystick. No keyboard needed
+   (digits 1-7 tap stations on desktop as a courtesy).                  */
+const Input = (() => {
+  const cv = document.getElementById("game");
+  let ptr={x:0,y:0,down:false,downAt:0};
+  let taps=[];            // queued taps (canvas coords)
+  let swiped=false, downX=0, downY=0;
+
+  // input maps to WORLD units (240x352) — the backing store scales with
+  // devicePixelRatio, so canvas pixels are not stable coordinates.
+  const WU=240, HU=352;
+  function toWorld(t,r){ return {x:(t.clientX-r.left)/r.width*WU, y:(t.clientY-r.top)/r.height*HU}; }
+  function cvPos(e){
+    const r=cv.getBoundingClientRect();
+    const t=e.touches?e.touches[0]:(e.changedTouches?e.changedTouches[0]:e);
+    return toWorld(t,r);
+  }
+  function pdown(e){
+    Sound.init();
+    const r=cv.getBoundingClientRect();
+    // every finger counts — second-thumb taps register while the first holds
+    if (e.changedTouches){ for (const t of e.changedTouches) taps.push(toWorld(t,r)); }
+    else { const p=toWorld(e,r); taps.push({x:p.x,y:p.y}); }
+    const p=cvPos(e);
+    ptr.x=p.x; ptr.y=p.y; downX=p.x; downY=p.y; swiped=false;
+    ptr.down=true; ptr.downAt=performance.now();
+    e.preventDefault();
+  }
+  function pmove(e){
+    const p=cvPos(e); ptr.x=p.x; ptr.y=p.y;
+    if (ptr.down && !swiped && Math.hypot(p.x-downX,p.y-downY)>20 && performance.now()-ptr.downAt<320) swiped=true;
+  }
+  function pup(){ ptr.down=false; }
+  cv.addEventListener("mousedown",pdown); cv.addEventListener("mousemove",pmove); window.addEventListener("mouseup",pup);
+  cv.addEventListener("touchstart",pdown,{passive:false});
+  cv.addEventListener("touchmove",e=>{pmove(e);e.preventDefault();},{passive:false});
+  cv.addEventListener("touchend",pup); cv.addEventListener("touchcancel",pup);
+
+  window.addEventListener("keydown", e=>{
+    if (e.key===" ") e.preventDefault();
+    Game.onKey(e.code);
+  });
+
+  function consumeTaps(){ const t=taps; taps=[]; return t; }
+  function consumeSwipe(){ const s=swiped; swiped=false; return s; }
+  return { ptr, consumeTaps, consumeSwipe };
+})();
+
+/* ================================ WORLD =================================
+   Portrait-native map, 15 x 22 tiles (240 x 352 px).
+   The kitchen line lives at the BOTTOM — under the player's thumbs.
+   The dining room looms ABOVE, out of reach. No avatar. No walking.   */
+const World = (() => {
+  const TILE=16, W=15, H=22;
+  // tiles: 0 kitchen floor / 1 wall / 2 dining floor / 3 counter / 4 window
+  //        5 door / 6 booth
+  const map=[], windows=[], puddles=[]; // puddle: {stId,kind} — sits ON a station
+  const booths=[[2,3],[7,3],[11,3],[2,6],[7,6],[11,6],[2,9],[11,9]];
+
+  // Stations: big tap rects (px). Cook stations hold dish slots.
+  const stations=[];
+  const S=(id,name,tx,ty,tw,th,cook)=>stations.push({
+    id,name,tx,ty,tw,th,cook:!!cook,
+    x:tx*TILE, y:ty*TILE, w:tw*TILE, h:th*TILE,
+    disabled:false, fire:false, hot:0, // hot = visual flash timer
+  });
+
+  function build(){
+    map.length=0; windows.length=0; puddles.length=0; stations.length=0;
+    for (let y=0;y<H;y++) map.push(new Array(W).fill(0));
+    for (let y=0;y<H;y++) for (let x=0;x<W;x++){
+      if (y===0||y===H-1||x===0||x===W-1) map[y][x]=1;
+      else if (y<13) map[y][x]=2;
+    }
+    // windows: top wall + upper side walls
+    const winSpots=[[2,0],[3,0],[10,0],[11,0],[0,3],[0,4],[14,3],[14,4],[0,8],[14,8]];
+    for (const [x,y] of winSpots){ map[y][x]=4; windows.push({tx:x,ty:y,hp:3,bangT:0,boarded:false}); }
+    map[0][6]=5; map[0][7]=5; // the door. top-center. watching.
+    for (const [x,y] of booths) map[y][x]=6;
+    for (let x=1;x<W-1;x++) map[13][x]=3; // the pass counter
+
+    S("pass",   "THE PASS", 5,13,5,1);
+    S("printer","PRINTER",  10,13,2,1);
+    S("prep",   "PREP",     1,15,4,2, true);
+    S("gen",    "GENERATOR",10,15,4,2);
+    S("grill",  "GRILL",    1,19,3,2, true);
+    S("stove",  "STOVE",    4,19,4,2, true);
+    S("fryer",  "FRYER",    8,19,3,2, true);
+    S("coffee", "COFFEE",   11,19,3,2, true);
+  }
+  build();
+
+  // cosmetic chef — slides along the line toward the last touched station
+  const chef={x:7.5*TILE, y:17.6*TILE, tx:7.5*TILE};
+  function chefTo(st){ chef.tx=Math.max(1.5*TILE, Math.min((W-1.5)*TILE, st.x+st.w/2)); }
+  function update(dt){
+    chef.x += (chef.tx-chef.x)*Math.min(1,dt*10);
+    for (const st of stations) if (st.hot>0) st.hot-=dt;
+  }
+  function stationAt(x,y){
+    for (const st of stations){
+      if (x>=st.x-6&&x<=st.x+st.w+6&&y>=st.y-24&&y<=st.y+st.h+6) return st; // -24: widgets above are tappable too
+    }
+    return null;
+  }
+  function windowAt(x,y){
+    for (const w of windows){
+      const wx=w.tx*TILE, wy=w.ty*TILE;
+      if (x>=wx-9&&x<=wx+TILE+9&&y>=wy-9&&y<=wy+TILE+9) return w;
+    }
+    return null;
+  }
+  function puddleOn(stId){ return puddles.find(p=>p.stId===stId); }
+  return { TILE,W,H,map,windows,puddles,booths,stations,chef,build,update,chefTo,
+    stationAt,windowAt,puddleOn, stationById:id=>stations.find(s=>s.id===id) };
+})();
+
+/* =============================== MASTERY =============================== */
+const Mastery = (() => {
+  const XP_PER = [0,10,25,50,90,150];
+  function get(key){ return Save.data.mastery[key] || (Save.data.mastery[key]={xp:0}); }
+  function level(key){
+    const xp=get(key).xp; let l=0;
+    for (let i=1;i<XP_PER.length;i++) if (xp>=XP_PER[i]) l=i;
+    return l;
+  }
+  function gainXP(key,amt){
+    const before=level(key);
+    get(key).xp+=amt;
+    const after=level(key);
+    if (after>before){
+      UI.toast(`${Data.RECIPES[key].name} mastery Lv.${after}${after===5?" — SIGNATURE UNLOCKED":""}`,"good");
+      Sound.fx.bell();
+      if (after>=5) UI.achieve("master1");
+    }
+  }
+  function zoneBonus(key){
+    let b = level(key)*0.05;
+    const st=Data.RECIPES[key].station;
+    if (st==="grill"&&Save.data.upgrades.grill2) b+=0.15;
+    return b;
+  }
+  function progress(key){
+    const xp=get(key).xp, l=level(key);
+    if (l>=5) return 1;
+    return (xp-XP_PER[l])/(XP_PER[l+1]-XP_PER[l]);
+  }
+  return { level, gainXP, zoneBonus, progress };
+})();
+
+/* ================================ HUNGER ================================ */
+const Hunger = (() => {
+  let value = 8, calmT = 0, hitFeeding = false;
+  function stageIndex(){ let i=0; for (let k=0;k<Data.STAGES.length;k++) if (value>=Data.STAGES[k].min) i=k; return i; }
+  function riseRate(){
+    let r = 0.15 + Game.night*0.013;
+    if (Events.active("blackout")) r*=1.6;
+    r += World.windows.filter(w=>w.hp<=0).length*0.05;
+    if (calmT>0) r*=0.4;
+    return r;
+  }
+  function update(gdt){
+    value = Math.min(100, value + riseRate()*gdt);
+    if (calmT>0) calmT-=gdt;
+    if (stageIndex()===4) hitFeeding=true;
+    else if (hitFeeding && stageIndex()<=2){ UI.achieve("stage5"); hitFeeding=false; }
+  }
+  return { get value(){return value;}, set value(v){value=v;}, stageIndex, update,
+    feed(a){ value=Math.max(0,value-a); }, spike(a){ value=Math.min(100,value+a); },
+    calm(m){ calmT=Math.max(calmT,m); },
+    stage(){ return Data.STAGES[stageIndex()]; }, reset(){ value=8; calmT=0; hitFeeding=false; } };
+})();
+
+/* ================================ ORDERS ================================ */
+const Orders = (() => {
+  let list = [], chain = 0, nextId = 1, spawnT = 0, missedThisNight = 0, servedThisNight = 0;
+  let cravings = [];
+
+  function unlockedRecipes(){
+    return Object.entries(Data.RECIPES).filter(([k,r])=>r.unlock<=Game.night).map(([k])=>k);
+  }
+  function maxTickets(){ return 4 + (Save.data.upgrades.rail1?1:0) + (Save.data.upgrades.rail2?1:0); }
+  function rollCravings(){
+    const cats=[...new Set(unlockedRecipes().map(k=>Data.RECIPES[k].cat))];
+    cravings=[];
+    const n = Game.night>=4 ? 2 : 1;
+    while (cravings.length<Math.min(n,cats.length)){
+      const c=cats[Math.floor(Math.random()*cats.length)];
+      if (!cravings.includes(c)) cravings.push(c);
+    }
+  }
+  function rollNote(){
+    const n=Game.night, h=Hunger.stageIndex();
+    let pool=Data.NOTES.early, chance=0.14;
+    if (h>=4) { pool=Data.NOTES.feeding; chance=0.5; }
+    else if (n>=5||h>=3) { pool=Data.NOTES.late; chance=0.3; }
+    else if (n>=2||h>=2) { pool=Data.NOTES.mid; chance=0.22; }
+    if (Math.random()>chance) return null;
+    return pool[Math.floor(Math.random()*pool.length)];
+  }
+  function spawn(){
+    if (list.length>=maxTickets()) return;
+    const keys=unlockedRecipes();
+    let key;
+    if (Math.random()<0.45){
+      const craveKeys=keys.filter(k=>cravings.includes(Data.RECIPES[k].cat));
+      if (craveKeys.length) key=craveKeys[Math.floor(Math.random()*craveKeys.length)];
+    }
+    if (!key) key=keys[Math.floor(Math.random()*keys.length)];
+    const r=Data.RECIPES[key];
+    let mod=null;
+    const mchance = Hunger.stageIndex()>=3 ? 1.6 : 1;
+    for (const m of (Data.MODIFIERS[key]||[])){ if (Math.random()<m.chance*mchance){ mod=m; break; } }
+    let patience = 42 - Game.night*1.4 - Hunger.stageIndex()*3 + Math.random()*10;
+    patience = Math.max(24, patience);
+    if (Save.data.upgrades.bell) patience*=1.15;
+    if (Events.active("storm")) patience*=0.9;
+    const o={ id:nextId++, key, r, mod, note:rollNote(), t:patience, t0:patience,
+      crave:cravings.includes(r.cat), cooking:false };
+    list.push(o);
+    Sound.fx.printer();
+    UI.renderTickets();
+  }
+  function spawnInterval(){
+    let base = 19 - Game.night*1.0 - Hunger.stageIndex()*2.0;
+    return Math.max(8, base) * (0.75+Math.random()*0.5);
+  }
+  function burst(n){ for (let i=0;i<n;i++) spawn(); }
+  function update(gdt){
+    spawnT-=gdt;
+    if (spawnT<=0 && !Events.active("printerJam")){ spawn(); spawnT=spawnInterval(); }
+    for (const o of [...list]){
+      o.t -= o.cooking ? gdt*0.4 : gdt;   // committed dishes buy time, not immunity
+      if (o.t<=0) expire(o);
+    }
+  }
+  function expire(o){
+    list=list.filter(x=>x!==o);
+    missedThisNight++;
+    if (o.cooking) Line.cancelOrder(o);   // the dish dies on the pan
+    breakChain();
+    Hunger.spike(4+Game.night*0.4);
+    Sound.fx.fail(); Sound.fx.scratch();
+    UI.toast("Ticket lost. They noticed.","bad");
+    UI.renderTickets();
+    Render.shake(4);
+  }
+  function breakChain(){
+    if (chain>=3){
+      Hunger.spike(Math.min(18, 3+chain*0.5));
+      Sound.fx.scream();
+      UI.toast(`Chain broken at ${chain}. They felt that.`,"bad");
+    }
+    chain=0; UI.hud();
+  }
+  function serve(dish){
+    const o=dish.order;
+    list=list.filter(x=>x!==o);
+    servedThisNight++;
+    chain++;
+    Save.data.totalServed++;
+    Save.data.bestChain=Math.max(Save.data.bestChain,chain);
+    const r=Data.RECIPES[dish.key];
+    const starMul=[0.25,0.55,1,1.35,1.8][dish.stars-1];
+    let amt=r.hunger*starMul;
+    if (o.crave){ amt*=1.75; Save.data.craveServed++; if (Save.data.craveServed>=50) UI.achieve("crave50"); }
+    if (Mastery.level(dish.key)>=5) amt*=1.15;
+    Hunger.feed(amt);
+    const mMul=[0.4,0.7,1,1.3,1.7][dish.stars-1] * (1+Mastery.level(dish.key)*0.06);
+    let pay=Math.round(r.price*mMul*(1+Math.min(30,chain)*0.02));
+    Game.money+=pay;
+    if (Game.money>=500) UI.achieve("rich");
+    Mastery.gainXP(dish.key, dish.stars + (dish.stars===5?2:0));
+    if (dish.stars===5){ Save.data.totalPerfect++; UI.achieve("first5"); Sound.fx.perfect(); }
+    else Sound.fx.combo(chain);
+    if (Events.active("blackout")) UI.achieve("dark");
+    const ms=Data.CHAIN_MILESTONES[chain];
+    if (ms){ Game.money+=ms.money; UI.toast(ms.txt,"good"); Sound.fx.bell(); if (chain%10===0) Hunger.calm(18); }
+    if (chain>=10) UI.achieve("chain10");
+    if (chain>=25) UI.achieve("chain25");
+    UI.toast(`${r.name} ${"★".repeat(dish.stars)}${"☆".repeat(5-dish.stars)}  +$${pay}${o.crave?"  CRAVING SATED":""}`, dish.stars>=4?"good":"");
+    UI.renderTickets(); UI.hud();
+  }
+  function reset(){
+    list=[]; chain=0; spawnT=9; missedThisNight=0; servedThisNight=0;
+    rollCravings();
+    burst(2);
+  }
+  return { get list(){return list;}, get chain(){return chain;}, get cravings(){return cravings;},
+    get missed(){return missedThisNight;}, get served(){return servedThisNight;},
+    update, serve, reset, breakChain, maxTickets, burst,
+    oldestFor(stationId){ return list.find(o=>!o.cooking && Data.RECIPES[o.key].station===stationId); } };
+})();
+
+/* ================================ LINE ==================================
+   THE HEART OF 2.0. Every cook station runs its own dish, all at once.
+   Steps demand attention on their own schedules; the player triages.
+   No modal minigames — the whole kitchen is the minigame.             */
+const Line = (() => {
+  const slots = {};        // stationId -> [slot,...]
+  let tray = null;         // {slot} — bottom assembly tray, non-blocking
+  let flowT = 0;
+
+  function capacity(stId){ return stId==="grill" && Save.data.upgrades.carry2 ? 2 : 1; }
+  function slotsOf(stId){ return slots[stId] || (slots[stId]=[]); }
+  function activeCount(){ return Object.values(slots).reduce((a,l)=>a+l.filter(s=>!s.done).length,0); }
+  function anyHotCooking(){
+    return ["grill","stove","fryer"].some(id=>slotsOf(id).some(s=>!s.done && !s.frozen));
+  }
+  function widen(zone, key){
+    const b=Mastery.zoneBonus(key);
+    const c=(zone[0]+zone[1])/2, half=(zone[1]-zone[0])/2*(1+b);
+    return [Math.max(0.02,c-half), Math.min(0.98,c+half)];
+  }
+  function buildSteps(order){
+    const r=Data.RECIPES[order.key];
+    const steps=[];
+    for (const s of r.steps){
+      if (s.skipUpg && Save.data.upgrades[s.skipUpg]) continue;
+      const st={...s};
+      if (s.t==="seq"){
+        let items=[...s.items];
+        if (order.mod){
+          if (order.mod.drop) items=items.filter(i=>!order.mod.drop.includes(i));
+          if (order.mod.add){ const top=items.pop(); items.push(...order.mod.add); if (top) items.push(top); }
+        }
+        st.items=items;
+      }
+      if (s.modZone && order.mod && order.mod[s.modZone]) st.zone=[...order.mod[s.modZone]];
+      if (order.mod && order.mod.fryzone && s.label==="FRY") st.zone=[...order.mod.fryzone];
+      if (Array.isArray(st.zone)) st.zone=widen(st.zone, order.key);
+      if (s.t==="stop" && Save.data.upgrades.fryer2 && r.station==="fryer") st.speed*=0.8;
+      if (s.t==="gauge" && Save.data.upgrades.shoes1) st.speed*=0.9;
+      if (Orders.chain>=8 && (s.t==="stop"||s.t==="gauge")) st.speed*=0.92; // flow state
+      steps.push(st);
+    }
+    return steps;
+  }
+  function lifeMul(){ return Save.data.upgrades.shoes2 ? 1.25 : 1; }
+
+  function start(station){
+    const order=Orders.oldestFor(station.id);
+    if (!order) { Sound.fx.tick(); return false; }
+    order.cooking=true;
+    const slot={ station, order, key:order.key, steps:buildSteps(order), idx:0, scores:[],
+      done:false, frozen:false, dish:null, flash:0, prepForgive:Save.data.upgrades.prep2?1:0 };
+    slotsOf(station.id).push(slot);
+    initStep(slot);
+    station.hot=0.3;
+    Sound.fx.plate();
+    UI.renderTickets();
+    if (activeCount()>=4) UI.achieve("fivepan");
+    return true;
+  }
+  function initStep(slot){
+    const s=slot.steps[slot.idx];
+    if (!s) return;
+    slot.pos=0; slot.dir=1; slot.t=0;
+    if (s.t==="gauge"){ slot.life=(s.life||7)*lifeMul(); }
+    if (s.t==="shake"){ slot.taps=0; slot.timeLeft=s.time*1.6*lifeMul(); }
+    if (s.t==="stir"){ slot.froth=0.35; slot.goodT=0; slot.total=0; slot.boiled=false; }
+    if (s.t==="fill"){ slot.pouring=false; }
+    if (s.t==="seq"){
+      slot.placed=[]; slot.mistakes=0;
+      slot.shuffled=[...s.items].map(v=>({v,r:Math.random()})).sort((a,b)=>a.r-b.r).map(o=>o.v);
+    }
+  }
+  function zoneScore(pos, zone){
+    if (pos<zone[0]||pos>zone[1]){
+      const d=Math.min(Math.abs(pos-zone[0]),Math.abs(pos-zone[1]));
+      return Math.max(0, 0.45-d*2.4);
+    }
+    const c=(zone[0]+zone[1])/2, half=(zone[1]-zone[0])/2;
+    return 1 - (Math.abs(pos-c)/half)*0.25;
+  }
+  function completeStep(slot, score){
+    slot.scores.push(Math.max(0,Math.min(1,score)));
+    slot.flash = score>0.8?1:(score>0.4?2:3);
+    slot.station.hot=0.3;
+    if (score>0.8) Sound.fx.stampGood(); else if (score<0.3) Sound.fx.burn();
+    slot.idx++;
+    if (tray && tray.slot===slot) tray=null;
+    if (slot.idx>=slot.steps.length) finish(slot);
+    else initStep(slot);
+  }
+  function finish(slot){
+    const avg=slot.scores.reduce((a,b)=>a+b,0)/slot.scores.length;
+    const anyBurn=slot.scores.some(s=>s<0.15);
+    let stars = avg>=0.93?5 : avg>=0.8?4 : avg>=0.6?3 : avg>=0.4?2 : 1;
+    if (anyBurn) stars=Math.min(stars,2);
+    if (Events.active("spoilage") && !Save.data.upgrades.fridge2) stars=Math.min(stars,3);
+    slot.done=true;
+    slot.dish={key:slot.key, stars, order:slot.order};
+    Sound.fx.bell();
+    Render.starBurst(slot.station, stars);
+  }
+  function serveSlot(slot){
+    const l=slotsOf(slot.station.id);
+    l.splice(l.indexOf(slot),1);
+    Render.flyPlate(slot.station, slot.dish.stars);
+    Sound.fx.woosh();
+    Orders.serve(slot.dish);
+  }
+  function cancelOrder(order){ // ticket expired mid-cook
+    for (const id of Object.keys(slots)){
+      const l=slots[id];
+      for (const slot of [...l]){
+        if (slot.order===order){ l.splice(l.indexOf(slot),1); if (tray&&tray.slot===slot) tray=null; }
+      }
+    }
+  }
+  function scrap(slot){ // player abandons a dish (long-press done? no — via burn/expiry only)
+    const l=slotsOf(slot.station.id);
+    l.splice(l.indexOf(slot),1);
+    slot.order.cooking=false;
+    if (tray&&tray.slot===slot) tray=null;
+  }
+
+  // ---- player taps a station ----
+  function tap(station){
+    World.chefTo(station);
+    if (station.fire){ Events.fireMash(); return; }
+    if (World.puddleOn(station.id)) { Sound.fx.fail(); return; } // needs mopping (hold)
+    if (!station.cook){
+      if (station.id==="printer" && !Events.active("printerJam")) Sound.fx.printer();
+      return;
+    }
+    const l=slotsOf(station.id);
+    // 1) serve any finished plate
+    const doneSlot=l.find(s=>s.done);
+    if (doneSlot){ serveSlot(doneSlot); return; }
+    // 2) act on a slot that wants attention
+    const act=l.find(s=>!s.frozen && s.steps[s.idx] && ["stop","gauge","shake","stir"].includes(s.steps[s.idx].t));
+    if (act){ actOn(act); return; }
+    // 3) open assembly tray
+    const seqSlot=l.find(s=>!s.frozen && s.steps[s.idx] && s.steps[s.idx].t==="seq");
+    if (seqSlot){ tray={slot:seqSlot}; Sound.fx.tick(); return; }
+    // 4) fill steps use hold — nudge the player
+    const fillSlot=l.find(s=>!s.frozen && s.steps[s.idx] && s.steps[s.idx].t==="fill");
+    if (fillSlot){ Sound.fx.tick(); return; }
+    // 5) start a new dish
+    if (station.disabled || Events.active("blackout")){ Sound.fx.fail(); return; }
+    if (l.length<capacity(station.id)) start(station);
+    else Sound.fx.tick();
+  }
+  function actOn(slot){
+    const s=slot.steps[slot.idx];
+    switch(s.t){
+      case "stop": completeStep(slot, zoneScore(slot.pos, s.zone)); Sound.fx.flip(); break;
+      case "gauge": {
+        const half=s.zone*(1+Mastery.zoneBonus(slot.key))/2;
+        completeStep(slot, zoneScore(slot.pos, [0.5-half,0.5+half])); Sound.fx.flip(); break;
+      }
+      case "shake": slot.taps++; Sound.fx.chop();
+        if (slot.taps>=s.taps) completeStep(slot, 1 - Math.max(0,(1-slot.timeLeft/(s.time*1.6*lifeMul()))-0.4)*0.5);
+        break;
+      case "stir": slot.froth=Math.max(0, slot.froth-0.16); Sound.fx.pour(); break;
+    }
+  }
+  // ---- holds (fill steps) ----
+  function holdFill(station, dt){
+    const slot=slotsOf(station.id).find(s=>!s.frozen && s.steps[s.idx] && s.steps[s.idx].t==="fill");
+    if (!slot) return false;
+    slot.pouring=true;
+    slot.pos+=dt*slot.steps[slot.idx].speed;
+    if (!slot._ps){ slot._ps=true; Sound.fx.pour(); setTimeout(()=>{slot._ps=false;},350); }
+    if (slot.pos>=1){ // overflow! and now there's a mess on the line
+      completeStep(slot, 0.1);
+      World.puddles.push({stId:station.id, kind:station.id==="fryer"?"grease":"water"});
+      UI.toast(station.name+" overflowed — mop it!","bad");
+      Sound.fx.drip();
+    }
+    return true;
+  }
+  function releaseFill(station){
+    const slot=slotsOf(station.id).find(s=>s.pouring && s.steps[s.idx] && s.steps[s.idx].t==="fill");
+    if (!slot) return;
+    slot.pouring=false;
+    const s=slot.steps[slot.idx];
+    const d=Math.abs(slot.pos-s.target), over=slot.pos>s.target;
+    completeStep(slot, Math.max(0, 1 - d*(over?5.5:3.5)));
+  }
+  // ---- assembly tray ----
+  function tapSeq(idx){
+    if (!tray) return;
+    const slot=tray.slot, s=slot.steps[slot.idx];
+    if (!s||s.t!=="seq") { tray=null; return; }
+    const want=s.items[slot.placed.length];
+    const got=slot.shuffled[idx];
+    if (got===undefined) return;
+    if (got===want){
+      slot.placed.push(got);
+      slot.shuffled[idx]=undefined;
+      Sound.fx.tick();
+      if (slot.placed.length>=s.items.length){
+        completeStep(slot, Math.max(0, 1 - slot.mistakes*0.25));
+      }
+    } else {
+      if (slot.prepForgive>0){ slot.prepForgive--; UI.toast("Forgiven. (Mise en place)",""); }
+      else slot.mistakes++;
+      Sound.fx.fail();
+    }
+  }
+  function closeTray(){ tray=null; }
+
+  // ---- per-frame simulation of every slot ----
+  function update(dt){
+    for (const st of World.stations){
+      if (!st.cook) continue;
+      st.disabledEff = st.disabled || st.fire || !!World.puddleOn(st.id);
+      for (const slot of [...slotsOf(st.id)]){
+        if (slot.done) continue;
+        slot.frozen = st.disabledEff || Events.active("blackout");
+        if (slot.frozen) continue;
+        const s=slot.steps[slot.idx];
+        if (!s) continue;
+        slot.t+=dt;
+        if (slot.flash>0) slot.flash-=dt*4;
+        switch(s.t){
+          case "stop":
+            slot.pos+=dt*s.speed;
+            if (slot.pos>=1){
+              if (s.burn){ completeStep(slot,0.05); UI.toast(Data.RECIPES[slot.key].name+" BURNED!","bad"); Render.shake(2); }
+              else completeStep(slot,0.5);
+            }
+            break;
+          case "gauge":
+            slot.pos+=slot.dir*dt*s.speed;
+            if (slot.pos>1){slot.pos=1;slot.dir=-1;}
+            if (slot.pos<0){slot.pos=0;slot.dir=1;}
+            slot.life-=dt;
+            if (slot.life<=0) completeStep(slot,0.35); // fizzled — nobody flipped it
+            break;
+          case "shake":
+            slot.timeLeft-=dt;
+            if (slot.timeLeft<=0) completeStep(slot, slot.taps/s.taps*0.6);
+            break;
+          case "stir":
+            slot.total+=dt;
+            slot.froth += dt*(0.16+0.10*Math.sin(slot.total*1.7)+Hunger.stageIndex()*0.012);
+            if (slot.froth<0.7) slot.goodT+=dt;
+            if (slot.froth>=1){
+              slot.boiled=true;
+              completeStep(slot,0.2);
+              World.puddles.push({stId:st.id, kind:"water"});
+              UI.toast("Boil-over! Mop the stove!","bad");
+              Sound.fx.drip();
+            }
+            else if (slot.total>=s.dur) completeStep(slot, Math.min(1, slot.goodT/s.dur+0.1));
+            break;
+          case "fill": break;   // driven by holds
+          case "seq": break;    // driven by tray taps
+        }
+      }
+    }
+    Sound.setSizzle(anyHotCooking());
+    if (Orders.chain>=8){ flowT+=dt; } else flowT=0;
+  }
+  function reset(){ for (const k of Object.keys(slots)) delete slots[k]; tray=null; }
+  return { slots:slotsOf, tap, holdFill, releaseFill, tapSeq, closeTray, cancelOrder, start, serveSlot,
+    update, reset, capacity, activeCount, get tray(){return tray;} };
+})();
+
+/* ================================ EVENTS ================================
+   Frequent, fast, always fixable with one hold or a few taps. Every
+   event competes with cooking for the same thumbs.                    */
+const Events = (() => {
+  const active_ = {};
+  let checkT = 5;
+
+  const cookIds=["grill","stove","fryer","coffee","prep"];
+  const rnd=a=>a[Math.floor(Math.random()*a.length)];
+
+  const DEFS = [
+    { id:"storm", minStage:0, weight:2.0, dur:[40,90],
+      start(){ UI.toast("The storm leans on the diner.","story"); Sound.fx.thunder(); },
+      tick(gdt,ev){ ev.thT=(ev.thT||0)-gdt; if (ev.thT<=0){ ev.thT=8+Math.random()*20; Sound.fx.thunder(); Render.lightning(); } } },
+    { id:"rush", minStage:0, weight:1.7, instant:true, cond:()=>!Events.active("printerJam"),
+      start(){ Orders.burst(2); UI.toast("The printer won't stop.","story"); } },
+    { id:"blackout", minStage:1, weight:1.0, dur:null,
+      start(){ Game.power=false; Sound.fx.powerDown(); UI.toast("BREAKER TRIPPED — hold the GENERATOR!","bad"); Render.shake(3); },
+      end(){ Game.power=true; Sound.fx.powerUp(); UI.toast("Power restored.","good"); } },
+    { id:"surge", minStage:1, weight:1.5, dur:null,
+      start(ev){
+        const c=World.stations.filter(s=>s.cook&&!s.disabled);
+        if (!c.length) return false;
+        ev.st=rnd(c); ev.st.disabled=true;
+        Render.lightning(); Sound.fx.spark(); Render.shake(3);
+        UI.toast(`SURGE — ${ev.st.name} tripped! Hold the GENERATOR.`,"bad");
+      },
+      end(ev){ if (ev.st) ev.st.disabled=false; UI.toast("Breaker reset.","good"); } },
+    { id:"gasLeak", minStage:2, weight:1.0, dur:null,
+      start(){ const st=World.stationById("stove"); if (st.disabled) return false;
+        st.disabled=true; Sound.fx.hiss(); UI.toast("GAS LEAK — hold the STOVE to close the valve!","bad"); },
+      tick(gdt,ev){ ev.h=(ev.h||0)-gdt; if (ev.h<=0){ ev.h=7; Sound.fx.hiss(); } },
+      end(){ const st=World.stationById("stove"); if (st) st.disabled=false; UI.toast("Valve closed. Don't light a match.","good"); } },
+    { id:"leak", minStage:0, weight:1.6, instant:true,
+      start(){
+        const c=cookIds.filter(id=>!World.puddleOn(id));
+        if (!c.length) return false;
+        const id=rnd(c);
+        World.puddles.push({stId:id, kind:"water"});
+        Sound.fx.drip(); UI.toast("The ceiling leaks onto the "+World.stationById(id).name+" — hold to mop!","bad");
+      } },
+    { id:"spill", minStage:1, weight:1.1, instant:true,
+      start(){
+        const id=["fryer","grill"].find(i=>!World.puddleOn(i));
+        if (!id) return false;
+        World.puddles.push({stId:id, kind:"grease"});
+        Sound.fx.pour(); UI.toast("Grease all over the "+id.toUpperCase()+" — hold to mop!","bad");
+      } },
+    { id:"collapse", minStage:2, weight:1.0, dur:null,
+      start(){ const st=World.stationById("prep"); if (st.disabled) return false;
+        st.disabled=true; Sound.fx.crash(); Render.shake(6);
+        UI.toast("STORAGE COLLAPSE — hold PREP to dig it out!","bad"); },
+      end(){ const st=World.stationById("prep"); if (st) st.disabled=false; UI.toast("Shelves restacked. Nothing under them. Probably.","good"); } },
+    { id:"greaseFire", minStage:1, weight:1.4, dur:null,
+      start(ev){
+        const cands=World.stations.filter(s=>["grill","fryer","stove"].includes(s.id)&&!s.fire);
+        if (!cands.length) return false;
+        ev.st=rnd(cands);
+        ev.st.fire=true; ev.mash=0;
+        Sound.fx.burn(); UI.toast(`GREASE FIRE — mash the ${ev.st.name}!`,"bad"); Render.shake(5);
+      },
+      end(ev){ if (ev.st) ev.st.fire=false; UI.toast("Fire out. Heart still racing.","good"); } },
+    { id:"printerJam", minStage:1, weight:0.9, dur:null,
+      start(){ UI.toast("The printer chokes mid-order — hold it.","bad"); Sound.fx.fail(); },
+      end(){ UI.toast("Printer clears its throat.",""); Sound.fx.printer(); } },
+    { id:"windowBang", minStage:1, weight:2.3, instant:true,
+      start(){
+        const ws=World.windows.filter(w=>w.hp>0);
+        if (!ws.length) return false;
+        const w=rnd(ws);
+        w.hp--; w.bangT=1.2; if (w.hp<3) w.boarded=false;
+        Sound.fx.doorShake(); Render.shake(6);
+        UI.toast(w.hp<=0 ? "A WINDOW GAVE OUT — hold it to board it!" : "Something slammed a window.", w.hp<=0?"bad":"");
+        if (w.hp<=0) Sound.fx.scratch();
+      } },
+    { id:"spoilage", minStage:1, weight:0.7, dur:[25,50], cond:()=>!Save.data.upgrades.fridge2,
+      start(){ UI.toast("The walk-in smells wrong. Quality capped until it passes.","bad"); },
+      end(){ UI.toast("The fridge hum steadies.",""); } },
+    { id:"rat", minStage:0, weight:1.0, instant:true,
+      start(){ Render.rat(); Sound.fx.footstep(); } },
+    { id:"doorShake", minStage:2, weight:2.0, instant:true,
+      start(){ World.doorShakeT=1.6; Sound.fx.doorShake(); Render.shake(4); UI.toast("The door handle turns. Twice.","story"); } },
+    { id:"whisper", minStage:1, weight:1.4, instant:true,
+      start(){ Sound.fx.whisper(); } },
+    { id:"footsteps", minStage:0, weight:2.2, instant:true,
+      start(){ let i=0; const iv=setInterval(()=>{ Sound.fx.footstep(); if(++i>5)clearInterval(iv); }, 420); } },
+  ];
+
+  function active(id){ return !!active_[id]; }
+  function startEvent(def){
+    if (active_[def.id] && !def.instant) return;
+    const ev={def, t: def.dur ? def.dur[0]+Math.random()*(def.dur[1]-def.dur[0]) : Infinity};
+    const ok = def.start ? def.start(ev) : true;
+    if (ok===false) return;
+    if (!def.instant) active_[def.id]=ev;
+  }
+  function resolve(id){
+    const ev=active_[id]; if (!ev) return;
+    delete active_[id];
+    if (ev.def.end) ev.def.end(ev);
+  }
+  function update(gdt){
+    checkT-=gdt;
+    const stage=Hunger.stageIndex();
+    if (checkT<=0){
+      checkT = Math.max(2.4, 7.5 - stage*1.1);
+      const p = 0.34 + stage*0.13 + Game.night*0.02;
+      if (Math.random()<p){
+        const pool=DEFS.filter(d=>stage>=d.minStage && (!d.cond||d.cond()) && !active_[d.id]);
+        const tw=pool.reduce((a,d)=>a+d.weight,0);
+        let r=Math.random()*tw;
+        for (const d of pool){ r-=d.weight; if (r<=0){ startEvent(d); break; } }
+      }
+    }
+    for (const id of Object.keys(active_)){
+      const ev=active_[id];
+      if (ev.def.tick) ev.def.tick(gdt,ev);
+      ev.t-=gdt;
+      if (ev.t<=0) resolve(id);
+    }
+    if (Game.power){
+      let drain = 0.28 * (stage>=2?1.25:1);
+      if (Save.data.upgrades.gen2) drain*=0.65;
+      Game.fuel=Math.max(0,Game.fuel-drain*gdt/10);
+      if (Game.fuel<=0 && !active("blackout")){ startEvent(DEFS.find(d=>d.id==="blackout")); UI.toast("Generator ran dry!","bad"); }
+    }
+  }
+  function fireMash(){
+    const ev=active_["greaseFire"]; if (!ev) return;
+    ev.mash=(ev.mash||0)+1;
+    Sound.fx.chop(); Render.shake(1);
+    if (ev.mash>=8) resolve("greaseFire");
+  }
+  function fireStation(){ const ev=active_["greaseFire"]; return ev?ev.st:null; }
+  function reset(){ for (const id of Object.keys(active_)) delete active_[id]; checkT=5;
+    for (const st of World.stations){ st.fire=false; st.disabled=false; } }
+  return { update, active, resolve, fireMash, fireStation, reset };
+})();
+
+/* ================================ DINER =================================
+   The Regulars, seated above your line where you can always half-see
+   them. Nobody arrives. Nobody leaves. They just accumulate.          */
+const Diner = (() => {
+  const T=16;
+  const seats=[];
+  for (const [x,y] of World.booths){
+    seats.push({x:(x-0.62)*T+8, y:y*T+7}, {x:(x+0.62)*T+8, y:y*T+7});
+  }
+  const PALS=[["#565064","#c6bcae"],["#4e5a60","#cec2b0"],["#5e564c","#c2bab2"],["#50505e","#cabeae"],["#5a4e58","#c6c0b4"]];
+  let customers=[], arriveT=8;
+
+  function free(){ return seats.filter(s=>!customers.some(c=>c.seat===s)); }
+  function add(){
+    const f=free(); if (!f.length) return;
+    customers.push({ seat:f[Math.floor(Math.random()*f.length)],
+      pal:PALS[Math.floor(Math.random()*PALS.length)],
+      turned:false, stand:false, glitchT:0 });
+  }
+  function reset(){
+    customers=[]; arriveT=8;
+    const n=2+Math.floor(Math.random()*2);
+    for (let i=0;i<n;i++) add();
+  }
+  function update(gdt){
+    const st=Hunger.stageIndex();
+    arriveT-=gdt;
+    if (arriveT<=0){
+      arriveT = Math.max(5, 24 - st*4.5 - Game.night);
+      if (Math.random()<0.75) add();
+    }
+    for (const c of customers){
+      if (Math.random()<gdt*(0.02+st*0.02)) c.turned=!c.turned&&Math.random()<0.3+st*0.18;
+      if (c.glitchT>0) c.glitchT-=gdt;
+    }
+    if (st>=4 && customers.length && !customers.some(c=>c.stand) && Math.random()<gdt*0.03){
+      customers[Math.floor(Math.random()*customers.length)].stand=true;
+      Sound.fx.whisper();
+    }
+    if (st<4) customers.forEach(c=>c.stand=false);
+    if (st>=2 && customers.length>3 && Math.random()<gdt*0.012) Sound.fx.breath();
+    if (st>=3 && Math.random()<gdt*0.008) glitch();
+  }
+  function glitch(){
+    if (!customers.length) return;
+    const c=customers[Math.floor(Math.random()*customers.length)];
+    if (Math.random()<0.45) customers=customers.filter(x=>x!==c);
+    else { const f=free(); if (f.length){ c.seat=f[Math.floor(Math.random()*f.length)]; c.glitchT=0.4; } }
+  }
+  function draw(cx,time){
+    const st=Hunger.stageIndex();
+    for (const c of customers){
+      const jx=c.glitchT>0?(Math.random()-0.5)*2:0;
+      const x=(c.seat.x-4+jx)|0, y=(c.seat.y-(c.stand?15:11))|0;
+      const h=c.stand?14:10;
+      cx.fillStyle="rgba(0,0,0,.3)"; cx.fillRect(x+1,y+h+2,8,2);
+      cx.fillStyle=c.pal[0]; cx.fillRect(x+1,y+5,8,h-3);
+      cx.fillStyle=c.pal[1]; cx.fillRect(x+2,y+1,6,5);
+      cx.fillStyle="#262028"; cx.fillRect(x+2,y,6,2);
+      if (c.turned||c.stand){
+        // facing the kitchen. facing you. eyes open. always open.
+        cx.fillStyle = st>=3 ? "rgba(230,232,240,.95)" : "#2a242c";
+        cx.fillRect(x+3,y+3,1,1); cx.fillRect(x+6,y+3,1,1);
+      }
+    }
+  }
+  return { reset, update, draw, glitch, get count(){ return customers.length; } };
+})();
+
+/* ================================ RENDER ================================ */
+const Render = (() => {
+  const cv=document.getElementById("game"), cx=cv.getContext("2d");
+  const T=World.TILE, WW=240, WH=352;
+  const light=document.createElement("canvas"); light.width=WW; light.height=WH;
+  const lx=light.getContext("2d");
+  let shakeAmt=0, flashT=0, ratX=-1, ratT=0, time=0;
+  let zoomZ=1, focusX=WW/2, focusY=WH/2, S=1;
+  const sils={};
+  const flyers=[];    // plates flying to the pass
+  const passRest=[];  // plates sitting on the pass, being... collected
+  const bursts=[];    // star particles
+  let trayHits=[];
+
+  function fit(){
+    // Retina-sharp: backing store = world x integer multiple of (cssScale x DPR).
+    // All drawing stays in world units via setTransform; text and bars
+    // rasterize at native resolution instead of being CSS-stretched.
+    const aw=window.innerWidth, ah=window.innerHeight;
+    const cs=Math.min(aw/WW, ah/WH);
+    cv.style.width=Math.round(WW*cs)+"px"; cv.style.height=Math.round(WH*cs)+"px";
+    const dpr=window.devicePixelRatio||1;
+    S=Math.max(1, Math.min(6, Math.round(cs*dpr)));
+    cv.width=WW*S; cv.height=WH*S;
+    light.width=WW*S; light.height=WH*S;
+    lx.setTransform(S,0,0,S,0,0);
+    cx.imageSmoothingEnabled=false;
+  }
+  window.addEventListener("resize",fit);
+  window.addEventListener("orientationchange",()=>setTimeout(fit,120));
+  fit();
+
+  function shake(a){ if (Save.data.settings.shake) shakeAmt=Math.min(8,shakeAmt+a); }
+  function lightning(){ if (!Save.data.settings.flicker) flashT=0.18; if (Math.random()<0.5) Diner.glitch(); }
+  function rat(){ ratX=WW+10; ratT=3; }
+  function flyPlate(st, stars){
+    flyers.push({x:st.x+st.w/2, y:st.y-4, tx:7.5*T, ty:13*T+4, t:0, stars});
+  }
+  function starBurst(st, stars){
+    for (let i=0;i<4+stars;i++){
+      bursts.push({x:st.x+st.w/2, y:st.y-8, vx:(Math.random()-0.5)*60,
+        vy:-30-Math.random()*40, t:0.6+Math.random()*0.3,
+        c:stars>=5?"#ffd700":stars>=4?"#ffb14e":"#c9bfa6"});
+    }
+  }
+
+  const P={
+    kfloor1:"#3a2f28", kfloor2:"#453931", dfloor1:"#221f28", dfloor2:"#292531",
+    wall:"#171220", wallEdge:"#282033", counter:"#5a4632", counterTop:"#6e5840",
+    steel:"#6d737c", steelD:"#454b54", glassNight:"#080e1c", booth:"#443528",
+  };
+  function rrect(x,y,w,h,c){ cx.fillStyle=c; cx.fillRect(x|0,y|0,w,h); }
+
+  /* ---------- world ---------- */
+  function drawWindow(w){
+    const x=w.tx*T, y=w.ty*T;
+    rrect(x,y,T,T,P.glassNight);
+    cx.strokeStyle="rgba(140,170,220,.25)"; cx.lineWidth=1;
+    for (let i=0;i<3;i++){
+      const ox=((time*40+i*23+w.tx*31)%20)-2;
+      cx.beginPath(); cx.moveTo(x+ox,y+2); cx.lineTo(x+ox-2,y+12); cx.stroke();
+    }
+    const key=w.tx+","+w.ty, st=Hunger.stageIndex();
+    if (!sils[key]) sils[key]={on:false,t:0};
+    const s=sils[key];
+    s.t-=1/60;
+    if (s.t<=0){
+      const p = st>=4?0.75 : st>=3?0.45 : st>=2?0.2 : 0.02;
+      s.on = Math.random()<p;
+      s.t = 2+Math.random()*6;
+      if (s.on && st>=2 && Math.random()<0.3) Sound.fx.scratch();
+    }
+    if (s.on && w.hp>0){
+      cx.fillStyle="rgba(8,6,12,.9)";
+      cx.fillRect(x+4,y+3,8,13); cx.fillRect(x+3,y+6,10,10);
+      if (st>=3 || Math.random()<0.01){
+        cx.fillStyle="rgba(220,225,235,.8)";
+        cx.fillRect(x+5,y+6,2,2); cx.fillRect(x+9,y+6,2,2);
+      }
+    }
+    cx.strokeStyle="#3a3348"; cx.strokeRect(x+0.5,y+0.5,T-1,T-1);
+    if (w.hp<=2){ cx.strokeStyle="rgba(200,210,230,.5)"; cx.beginPath(); cx.moveTo(x+3,y+4); cx.lineTo(x+9,y+9); cx.lineTo(x+6,y+13); cx.stroke(); }
+    if (w.hp<=1){ cx.beginPath(); cx.moveTo(x+13,y+3); cx.lineTo(x+8,y+8); cx.lineTo(x+12,y+12); cx.stroke(); }
+    if (w.hp<=0){ rrect(x+2,y+2,T-4,T-4,"#05040a"); cx.fillStyle="rgba(120,150,200,.2)"; cx.fillRect(x,y+T,T,3); }
+    if (w.boarded){ cx.fillStyle="#6a5636"; cx.fillRect(x+1,y+3,T-2,4); cx.fillRect(x+1,y+9,T-2,4); }
+    if (w.bangT>0){ w.bangT-=1/60; const ox=Math.sin(w.bangT*40)*1.5; cx.strokeStyle="#8a94b8"; cx.strokeRect(x+ox+0.5,y+0.5,T-1,T-1); }
+  }
+
+  function drawStationBody(st){
+    const {x,y,w,h}=st;
+    rrect(x,y+3,w,h-3,P.steelD); rrect(x,y,w,4,P.steel);
+    cx.strokeStyle="#20242c"; cx.strokeRect(x+0.5,y+0.5,w-1,h-1);
+    switch(st.id){
+      case "grill":
+        rrect(x+3,y+6,w-6,12,"#222");
+        for (let i=0;i<Math.floor((w-8)/6);i++) rrect(x+5+i*6,y+7,4,10,"#3a3a3a");
+        if (Game.power&&!st.disabled) rrect(x+3,y+18,w-6,2,"#c84a1a");
+        break;
+      case "stove":
+        rrect(x+4,y+7,10,10,"#222"); rrect(x+6,y+9,6,6,"#5a1a0a");
+        rrect(x+w-22,y+5,18,13,"#888"); rrect(x+w-20,y+3,14,3,"#aaa"); // the pot
+        break;
+      case "fryer":
+        rrect(x+4,y+6,16,13,"#333"); rrect(x+6,y+8,12,7,"#c8a03a");
+        rrect(x+w-18,y+6,12,13,"#333");
+        break;
+      case "coffee":
+        rrect(x+5,y+4,w-10,15,"#2a2a30"); rrect(x+9,y+12,w-18,6,"#141418");
+        rrect(x+11,y+13,w-22,3,"#5a3a1a");
+        break;
+      case "prep":
+        rrect(x+3,y+5,w-6,6,"#7a9a5a"); rrect(x+5,y+13,14,5,"#d04a3a"); rrect(x+w-20,y+13,14,5,"#f0c040");
+        break;
+      case "gen":
+        rrect(x+3,y+5,w-6,14,"#5a5148");
+        rrect(x+6,y+8,10,6,Game.power?"#7ade6a":"#802020");
+        rrect(x+w-24,y+8,18,9,"#463e36");
+        if (Game.power && Math.floor(time*8)%2) rrect(x+6,y+2,3,3,"#aab");
+        // fuel gauge
+        rrect(x+3,y+h-4,w-6,3,"#241e18");
+        rrect(x+3,y+h-4,(w-6)*Math.min(1,Game.fuel/8),3, Game.fuel<1.5?"#c03020":"#c8a03a");
+        break;
+      case "pass": {
+        rrect(x,y+2,w,8,P.counterTop);
+        if (Game.power){ cx.fillStyle="rgba(255,190,90,.16)"; cx.fillRect(x-2,y-8,w+4,12); }
+        rrect(x+2,y-4,3,3,"#ffb14e"); rrect(x+w-5,y-4,3,3,"#ffb14e");
+        break;
+      }
+      case "printer":
+        rrect(x+4,y+1,w-8,10,"#3a3f4a"); rrect(x+8,y-3,w-16,5,"#e8ddc4");
+        if (Events.active("printerJam") && Math.floor(time*6)%2) rrect(x+4,y+1,w-8,10,"#7a2020");
+        break;
+    }
+    // label
+    cx.fillStyle="rgba(230,220,190,.5)"; cx.font="7px 'Courier New'"; cx.textAlign="center";
+    cx.fillText(st.name, x+w/2, y+h-1);
+    // hazards
+    const pud=World.puddleOn(st.id);
+    if (pud){
+      cx.fillStyle = pud.kind==="water" ? "rgba(90,130,200,.4)" : "rgba(150,110,30,.45)";
+      cx.beginPath(); cx.ellipse(x+w/2,y+h-5,w*0.4,4,0,0,7); cx.fill();
+      cx.fillStyle=`rgba(255,255,255,${0.1+0.06*Math.abs(Math.sin(time*3))}`+")";
+      cx.fillRect(x+w/2-4,y+h-6,4,1);
+    }
+    if (st.disabled && !st.fire){
+      cx.fillStyle="rgba(10,8,14,.45)"; cx.fillRect(x,y,w,h);
+      cx.fillStyle="#ffd24a"; cx.font="bold 10px 'Courier New'";
+      cx.fillText("⚡", x+w/2, y+h/2+3);
+    }
+    if (st.fire){
+      const seed=Math.floor(time*10)%3;
+      for (let i=0;i<Math.floor(w/8);i++){
+        cx.fillStyle=["#ff6a1a","#ffb14e","#ff3a0a"][(seed+i)%3];
+        const fh=6+((Math.sin(time*17+i*2)+1)*4|0);
+        cx.fillRect(x+3+i*8, y+8-fh+8, 5, fh);
+      }
+    }
+    if (st.hot>0){ cx.strokeStyle=`rgba(255,177,78,${st.hot*2})`; cx.strokeRect(x-1.5,y-1.5,w+3,h+3); }
+  }
+
+  /* ---------- slot widgets: the glanceable minigames ---------- */
+  function drawSlotWidget(st, slot, lane){
+    const wx=st.x+1, wy=st.y-15-lane*16, ww=st.w-2, wh=13;
+    cx.fillStyle="rgba(10,8,16,.94)"; cx.fillRect(wx,wy,ww,wh);
+    cx.strokeStyle=slot.frozen?"#7a3448":"#4a4266"; cx.strokeRect(wx+0.5,wy+0.5,ww-1,wh-1);
+    const s=slot.steps[slot.idx];
+    cx.textAlign="center"; cx.font="7px 'Courier New'";
+    if (slot.done){
+      const pulse=Save.data.settings.flicker?0.9:0.65+0.35*Math.sin(time*5);
+      cx.fillStyle="#e8e4dc"; cx.fillRect(wx+3,wy+4,10,4);
+      cx.fillStyle=slot.dish.stars>=5?"#ffd700":"#ffb14e"; cx.fillRect(wx+5,wy+2,6,3);
+      cx.fillStyle=`rgba(140,232,120,${pulse})`;
+      cx.fillText("SERVE "+"★".repeat(slot.dish.stars), wx+ww/2+6, wy+10);
+      return;
+    }
+    if (slot.frozen){ cx.fillStyle="#ffa89a"; cx.fillText("— HELP —", wx+ww/2, wy+10); return; }
+    if (!s) return;
+    const bar=(fill,zone,marker,burnHint)=>{
+      cx.fillStyle="#241e38"; cx.fillRect(wx+2,wy+2,ww-4,wh-4);
+      if (zone){ cx.fillStyle="#3a6a3a"; cx.fillRect(wx+2+zone[0]*(ww-4),wy+2,(zone[1]-zone[0])*(ww-4),wh-4); }
+      if (burnHint){ cx.fillStyle="rgba(200,90,30,.4)"; cx.fillRect(wx+2+(ww-4)*0.88,wy+2,(ww-4)*0.12,wh-4); }
+      if (fill!==null){ cx.fillStyle="rgba(200,160,90,.35)"; cx.fillRect(wx+2,wy+2,Math.min(1,fill)*(ww-4),wh-4); }
+      if (marker!==null){
+        cx.fillStyle = marker>0.98?"#ff6a4a":"#fff";
+        cx.fillRect(wx+2+Math.min(1,marker)*(ww-4)-1,wy,2,wh);
+      }
+    };
+    switch(s.t){
+      case "stop": bar(null, s.zone, slot.pos, s.burn); break;
+      case "gauge": {
+        const half=s.zone*(1+Mastery.zoneBonus(slot.key))/2;
+        bar(null,[0.5-half,0.5+half],slot.pos,false);
+        // life ring: the moment is passing
+        cx.fillStyle="#c9bfa6"; cx.fillRect(wx+2,wy+wh-1,(ww-4)*Math.max(0,slot.life/((s.life||7)*(Save.data.upgrades.shoes2?1.25:1))),1);
+        break;
+      }
+      case "fill": bar(slot.pos, [s.target-0.03,s.target+0.03], null, false);
+        cx.fillStyle="#e0d6ba"; cx.fillText("HOLD", wx+ww/2, wy+10); break;
+      case "shake": bar(Math.max(0,slot.timeLeft/(s.time*1.6*(Save.data.upgrades.shoes2?1.25:1))), null, null, false);
+        cx.fillStyle="#ffe08a"; cx.fillText("TAP! "+slot.taps+"/"+s.taps, wx+ww/2, wy+10); break;
+      case "stir": bar(slot.froth, [0,0.7], null, true);
+        cx.fillStyle=slot.froth>0.75?"#ffa89a":"#e0d6ba"; cx.fillText("STIR!", wx+ww/2, wy+10); break;
+      case "seq": {
+        const pulse=Save.data.settings.flicker?0.85:0.6+0.4*Math.sin(time*4);
+        cx.fillStyle=`rgba(255,190,100,${pulse})`; cx.fillText("TAP TO BUILD", wx+ww/2, wy+10);
+        break;
+      }
+    }
+    if (slot.flash>0){
+      cx.fillStyle=`rgba(${slot.flash>0.75&&slot.scores[slot.scores.length-1]>0.8?"122,222,106":"200,120,60"},${slot.flash*0.4})`;
+      cx.fillRect(wx,wy,ww,wh);
+    }
+    // step label
+    cx.fillStyle="#b0a890"; cx.font="7px 'Courier New'";
+    cx.fillText(Data.RECIPES[slot.key].name.split(" ")[0].toUpperCase()+" · "+s.label, wx+ww/2, wy-2);
+  }
+
+  function drawChef(){
+    const c=World.chef;
+    const x=(c.x-6)|0, y=(c.y-14)|0;
+    cx.fillStyle="rgba(0,0,0,.35)"; cx.fillRect(x+2,y+16,9,2);
+    cx.fillStyle="#2a2a34"; cx.fillRect(x+3,y+13,3,3); cx.fillRect(x+7,y+13,3,3);
+    cx.fillStyle="#d8d4c8"; cx.fillRect(x+2,y+6,9,8);
+    cx.fillStyle="#8a4a3a"; cx.fillRect(x+3,y+8,7,5);
+    cx.fillStyle="#e8bc94"; cx.fillRect(x+3,y+1,7,6);
+    cx.fillStyle="#3a3028"; cx.fillRect(x+3,y,7,2);
+  }
+
+  function drawWorld(){
+    for (let y=0;y<World.H;y++) for (let x=0;x<World.W;x++){
+      const t=World.map[y][x], px=x*T, py=y*T;
+      if (t===0) rrect(px,py,T,T,(x+y)%2?P.kfloor1:P.kfloor2);
+      else if (t===2) rrect(px,py,T,T,(x+y)%2?P.dfloor1:P.dfloor2);
+      else if (t===1){ rrect(px,py,T,T,P.wall); rrect(px,py+T-2,T,2,P.wallEdge); }
+      else if (t===3){ rrect(px,py,T,T,P.counter); rrect(px,py,T,5,P.counterTop); }
+      else if (t===5){
+        rrect(px,py,T,T,"#4a3826"); rrect(px+2,py+2,T-4,T-4,"#5a4630");
+        rrect(px+11,py+8,2,3,"#c8a03a");
+        if (World.doorShakeT>0){ World.doorShakeT-=1/60; const ox=Math.sin(World.doorShakeT*35)*1.5; cx.strokeStyle="#8a7a5a"; cx.strokeRect(px+ox+0.5,py+0.5,T-1,T-1); }
+      }
+      else if (t===6){ rrect(px+1,py+3,T-2,T-6,P.booth); rrect(px+2,py+3,T-4,3,"#5c4830");
+        rrect(px+4,py+5,3,2,"#8a2a2a"); rrect(px+9,py+5,3,3,"#c8c0b0"); }
+    }
+    // neon bleed from the sign, down through the top windows
+    World.windows.forEach((w,i)=>{
+      if (w.ty!==0) return;
+      const x=w.tx*T;
+      cx.fillStyle = i%2===0
+        ? `rgba(255,92,122,${0.05+0.035*Math.abs(Math.sin(time*1.7+i))})`
+        : `rgba(92,214,255,${0.045+0.03*Math.abs(Math.sin(time*1.3+i*2))})`;
+      cx.fillRect(x-2,T,T+4,3*T);
+    });
+    for (const w of World.windows) drawWindow(w);
+    Diner.draw(cx,time);
+    for (const st of World.stations) drawStationBody(st);
+    drawChef();
+    // flying plates
+    for (const f of [...flyers]){
+      f.t+=1/60;
+      const k=Math.min(1,f.t/0.45);
+      const x=f.x+(f.tx-f.x)*k, y=f.y+(f.ty-f.y)*k - Math.sin(k*Math.PI)*26;
+      cx.fillStyle="#e8e4dc"; cx.fillRect(x-4,y,9,3);
+      cx.fillStyle=f.stars>=5?"#ffd700":"#c89a5a"; cx.fillRect(x-2,y-2,5,3);
+      if (k>=1){ flyers.splice(flyers.indexOf(f),1); passRest.push({x:f.tx+(Math.random()-0.5)*30, t:2+Math.random()*2, stars:f.stars}); Sound.fx.plate(); }
+    }
+    for (const p of [...passRest]){
+      p.t-=1/60;
+      if (p.t<=0){ passRest.splice(passRest.indexOf(p),1); Sound.fx.eat(); continue; }
+      cx.globalAlpha=Math.min(1,p.t);
+      cx.fillStyle="#e8e4dc"; cx.fillRect(p.x-4,12.6*T,9,3);
+      cx.fillStyle=p.stars>=5?"#ffd700":"#c89a5a"; cx.fillRect(p.x-2,12.6*T-2,5,3);
+      cx.globalAlpha=1;
+    }
+    // star bursts
+    for (const b of [...bursts]){
+      b.t-=1/60;
+      if (b.t<=0){ bursts.splice(bursts.indexOf(b),1); continue; }
+      b.x+=b.vx/60; b.y+=b.vy/60; b.vy+=80/60;
+      cx.fillStyle=b.c; cx.fillRect(b.x,b.y,2,2);
+    }
+    if (ratT>0){
+      ratT-=1/60; ratX-=2.4;
+      cx.fillStyle="#3a3230"; cx.fillRect(ratX,13.5*T,6,3); cx.fillRect(ratX-3,13.6*T,3,1);
+      if (ratX<-12) ratT=0;
+    }
+  }
+
+  function drawLighting(){
+    const stage=Hunger.stageIndex(), S=Save.data.settings;
+    let dark = Game.power ? 0.42+stage*0.055 : 0.88;
+    if (Save.data.upgrades.lights && Game.power) dark-=0.07;
+    if (Game.power && stage>=2 && !S.flicker && !Save.data.upgrades.lights){
+      if (Math.random()<0.03){ dark+=0.18; if (Math.random()<0.3) Diner.glitch(); }
+    }
+    lx.clearRect(0,0,WW,WH);
+    lx.fillStyle=`rgba(4,3,10,${Math.min(0.93,dark)})`;
+    lx.fillRect(0,0,WW,WH);
+    lx.globalCompositeOperation="destination-out";
+    const glow=(x,y,r,a)=>{
+      const g=lx.createRadialGradient(x,y,2,x,y,r);
+      g.addColorStop(0,`rgba(0,0,0,${a})`); g.addColorStop(1,"rgba(0,0,0,0)");
+      lx.fillStyle=g; lx.beginPath(); lx.arc(x,y,r,0,7); lx.fill();
+    };
+    if (Game.power){
+      glow(4*T,20*T,58,0.95); glow(7.5*T,20*T,58,0.95); glow(11*T,20*T,58,0.95); // the line
+      glow(3*T,16*T,46,0.85); glow(12*T,16*T,46,0.8);
+      glow(7.5*T,13*T,44,0.85); // pass light
+      glow(4*T,5*T,34,0.4); glow(11*T,5*T,34,0.4); glow(7.5*T,8.5*T,36,0.35); // dining, dim
+    }
+    glow(World.chef.x,World.chef.y,Game.power?36:26,0.8);
+    for (const st of World.stations) if (st.fire) glow(st.x+st.w/2, st.y+8, 44, 0.95);
+    lx.globalCompositeOperation="source-over";
+    cx.drawImage(light,0,0,WW,WH);
+    if (flashT>0){ flashT-=1/60; cx.fillStyle=`rgba(200,215,255,${flashT*1.4})`; cx.fillRect(0,0,WW,WH); }
+    if (stage>=4 && !S.flicker){
+      const p=(Math.sin(time*3)+1)/2*0.06;
+      cx.fillStyle=`rgba(160,20,20,${p})`; cx.fillRect(0,0,WW,WH);
+    }
+  }
+
+  function drawWeather(){
+    // atmosphere stays OFF the cooking line: rain & fog only over the dining
+    // room (top ~58% of the screen), and gentle enough to read through.
+    const st=Hunger.stageIndex();
+    const storm=Events.active("storm")?1:0.4;
+    const rainH=WH*0.58;
+    cx.strokeStyle=`rgba(150,180,230,${0.03+0.04*storm})`; cx.lineWidth=1;
+    const n=Math.floor(14*storm)+5;
+    for (let i=0;i<n;i++){
+      const rx=((i*67+time*(240+(i%7)*17))%(WW+40))-20;
+      const ry=(i*53+time*130)%rainH;
+      cx.beginPath(); cx.moveTo(rx,ry); cx.lineTo(rx-3,ry+9); cx.stroke();
+    }
+    if (st>=1){
+      for (let i=0;i<2;i++){
+        const fxp=((time*(6+i*3)+i*140)%(WW+160))-80;
+        const fyp=WH*0.2+i*32;
+        const g=cx.createRadialGradient(fxp,fyp,4,fxp,fyp,55);
+        g.addColorStop(0,`rgba(150,160,190,${0.018*st})`); g.addColorStop(1,"rgba(150,160,190,0)");
+        cx.fillStyle=g; cx.beginPath(); cx.arc(fxp,fyp,55,0,7); cx.fill();
+      }
+    }
+  }
+
+  /* ---------- assembly tray: floats over the dining room ---------- */
+  function drawTray(){
+    trayHits=[];
+    const tr=Line.tray; if (!tr) return;
+    const slot=tr.slot, s=slot.steps[slot.idx];
+    if (!s||s.t!=="seq"){ return; }
+    const PW=WW-16, px=8, py=64;
+    const cols=3, bs=52, gap=8;
+    const rows=Math.ceil(s.items.length/cols);
+    const PH=46+rows*(bs+gap)+8;
+    cx.fillStyle="rgba(12,9,20,.94)"; cx.fillRect(px,py,PW,PH);
+    cx.strokeStyle="#5a4d80"; cx.lineWidth=2; cx.strokeRect(px,py,PW,PH);
+    cx.textAlign="center";
+    cx.fillStyle="#ffb14e"; cx.font="bold 10px 'Courier New'";
+    cx.fillText(Data.RECIPES[slot.key].name.toUpperCase()+" — "+s.label, px+PW/2, py+14);
+    const want=s.items[slot.placed.length];
+    cx.fillStyle="#7ade6a"; cx.font="bold 11px 'Courier New'";
+    cx.fillText("NEXT: "+(want?Data.ING[want].n.toUpperCase():"—"), px+PW/2, py+30);
+    // close X
+    cx.fillStyle="#7a2828"; cx.fillRect(px+PW-22,py+4,18,16);
+    cx.fillStyle="#ffb0a0"; cx.font="bold 10px 'Courier New'"; cx.fillText("X",px+PW-13,py+15);
+    trayHits.push({x:px+PW-22,y:py+4,w:18,h:16,act:"close"});
+    const totalW=cols*bs+(cols-1)*gap, gx=px+(PW-totalW)/2, gy=py+40;
+    slot.shuffled.forEach((it,i)=>{
+      const col=i%cols, row=(i/cols)|0;
+      const bx=gx+col*(bs+gap), by=gy+row*(bs+gap);
+      if (it===undefined){ cx.strokeStyle="#241e38"; cx.strokeRect(bx,by,bs,bs); return; }
+      cx.fillStyle="#1e1830"; cx.fillRect(bx,by,bs,bs);
+      cx.strokeStyle="#3a3350"; cx.strokeRect(bx,by,bs,bs);
+      cx.fillStyle=Data.ING[it].c; cx.fillRect(bx+10,by+8,bs-20,bs-26);
+      cx.fillStyle="#c9bfa6"; cx.font="8px 'Courier New'";
+      cx.fillText(Data.ING[it].n, bx+bs/2, by+bs-6);
+      trayHits.push({x:bx,y:by,w:bs,h:bs,act:"seq",idx:i});
+    });
+    if (slot.mistakes){ cx.fillStyle="#ff8a7a"; cx.font="8px 'Courier New'"; cx.fillText("mistakes: "+slot.mistakes, px+PW/2, py+PH-4); }
+  }
+  function trayHit(x,y){
+    for (const h of trayHits) if (x>=h.x&&x<=h.x+h.w&&y>=h.y&&y<=h.y+h.h) return h;
+    return null;
+  }
+
+  function frame(dt){
+    time+=dt;
+    cx.setTransform(S,0,0,S,0,0);
+    cx.imageSmoothingEnabled=false;
+    // subtle zoom toward the busiest touch — never hides the room
+    let fx=WW/2, fy=WH/2, targetZ=1;
+    const hotSt=World.stations.find(s=>s.hot>0.12);
+    if (hotSt && !Line.tray){ targetZ=1.05; fx=hotSt.x+hotSt.w/2; fy=hotSt.y; }
+    zoomZ+=(targetZ-zoomZ)*Math.min(1,dt*6);
+    focusX+=(fx-focusX)*Math.min(1,dt*6); focusY+=(fy-focusY)*Math.min(1,dt*6);
+    const hw=WW/2/zoomZ, hh=WH/2/zoomZ;
+    const camX=2*hw>=WW?WW/2:Math.max(hw,Math.min(WW-hw,focusX));
+    const camY=2*hh>=WH?WH/2:Math.max(hh,Math.min(WH-hh,focusY));
+    cx.fillStyle="#05040a"; cx.fillRect(0,0,WW,WH);
+    cx.save();
+    if (shakeAmt>0.1){
+      cx.translate((Math.random()-0.5)*shakeAmt,(Math.random()-0.5)*shakeAmt);
+      shakeAmt*=0.88;
+    }
+    cx.translate(WW/2,WH/2); cx.scale(zoomZ,zoomZ); cx.translate(-camX,-camY);
+    drawWorld();
+    drawLighting();
+    // gameplay info always renders ABOVE the darkness — horror never hides the HUD
+    for (const st of World.stations){
+      if (!st.cook) continue;
+      Line.slots(st.id).forEach((slot,i)=>drawSlotWidget(st,slot,i));
+    }
+    cx.restore();
+    drawWeather();
+    // hold-to-fix progress bar, floating over the target
+    const hf=Game.holdFix;
+    if (hf && hf.progress>0){
+      cx.fillStyle="rgba(10,8,16,.85)"; cx.fillRect(hf.x-16,hf.y-8,32,7);
+      cx.fillStyle="#7ade6a"; cx.fillRect(hf.x-15,hf.y-7,30*Math.min(1,hf.progress/hf.need),5);
+    }
+    drawTray();
+  }
+  return { frame, fit, shake, lightning, rat, flyPlate, starBurst, trayHit };
+})();
+
+/* ================================== UI ================================== */
+const UI = (() => {
+  const $=id=>document.getElementById(id);
+  function show(id){ document.querySelectorAll(".screen").forEach(s=>s.classList.remove("show")); if (id) $(id).classList.add("show"); }
+  function toast(txt, cls=""){
+    const t=document.createElement("div"); t.className="toast "+cls; t.textContent=txt;
+    $("toasts").appendChild(t);
+    setTimeout(()=>t.remove(), 2800);
+    while ($("toasts").children.length>3) $("toasts").firstChild.remove();
+  }
+  function achieve(id){
+    if (Save.data.achievements[id]) return;
+    Save.data.achievements[id]=true; Save.save();
+    const a=Data.ACHIEVEMENTS.find(x=>x.id===id);
+    if (a){ toast("🏆 "+a.name,"ach"); Sound.fx.bell(); }
+  }
+  function clockStr(gm){
+    let h=Math.floor(gm/60), m=Math.floor(gm%60);
+    const h12=h%12===0?12:h%12;
+    return `${h12}:${String(m).padStart(2,"0")} AM`;
+  }
+  function hud(){
+    $("hud-money").textContent="$"+Game.money;
+    const ch=Orders.chain;
+    $("hud-chain").innerHTML=ch>=5
+      ? `⛓ <span class="hot">${ch}</span> ×${(1+Math.min(30,ch)*0.02).toFixed(2)}`
+      : `⛓ ${ch}`;
+    $("hud-clock").innerHTML=`<div class="t">${clockStr(Game.gameMin)}</div><div class="n">NIGHT ${Game.night}</div>`;
+    const cw=$("hud-cravings"); cw.innerHTML="";
+    for (const c of Orders.cravings){
+      const d=document.createElement("div"); d.className="crave"; d.textContent="♦ "+Data.CRAVING_NAMES[c]; cw.appendChild(d);
+    }
+    const v=Hunger.value;
+    $("hunger-fill").style.width=v+"%";
+    $("hunger-stage").textContent=Hunger.stage().name;
+    $("hunger-stage").style.color = v>=80?"#ff6a5a":v>=60?"#e08a3a":v>=40?"#c8a03a":"#8a8478";
+    $("hunger-wrap").classList.toggle("hunger-pulse", v>=80);
+    $("redflash").style.opacity = Game.doomT>0 ? 0.25+Math.sin(performance.now()/200)*0.15 : 0;
+  }
+  // Tickets rebuild ONLY when the list changes; timers update in place.
+  // (Rebuilding every frame replayed the entry animation = strobing.)
+  let tkSig="", tkBars={};
+  function ticketSig(){
+    return Orders.list.map(o=>o.id+(o.cooking?"c":"")+(o.t<12&&!o.cooking?"u":"")).join("|");
+  }
+  function renderTickets(){
+    const ob=$("btn-orders");
+    if (ob) ob.textContent="🧾 "+Orders.list.length+"/"+Orders.maxTickets();
+    const w=$("tickets");
+    const sig=ticketSig();
+    if (sig!==tkSig){
+      tkSig=sig; tkBars={};
+      w.innerHTML="";
+      for (const o of Orders.list){
+        const urgent=o.t<12&&!o.cooking;
+        const d=document.createElement("div");
+        d.className="ticket"+(urgent?" urgent":"")+(o.crave?" crave-hit":"")+(o.cooking?" cooking":"");
+        if (Save.data.settings.contrast){ d.style.fontSize="13px"; d.style.fontWeight="bold"; }
+        let html=`<div class="tname">${urgent?"⚠ ":""}#${String(o.id).padStart(3,"0")} ${o.r.name}</div>`;
+        if (o.mod) html+=`<div class="tmod">${o.mod.txt}</div>`;
+        if (o.note) html+=`<div class="tnote">"${o.note}"</div>`;
+        if (o.cooking) html+=`<div class="tstation">— on the ${o.r.station} —</div>`;
+        d.innerHTML=html;
+        const bar=document.createElement("div"); bar.className="tbar";
+        const fill=document.createElement("div"); bar.appendChild(fill);
+        d.appendChild(bar);
+        w.appendChild(d);
+        tkBars[o.id]=fill;
+      }
+    }
+    // in-place timer updates: width + calm color shift, no DOM churn
+    for (const o of Orders.list){
+      const fill=tkBars[o.id]; if (!fill) continue;
+      const f=Math.max(0,o.t/o.t0);
+      fill.style.width=(f*100)+"%";
+      fill.style.backgroundColor = f>0.5?"#3f7a32":f>0.25?"#a5780e":"#a02318";
+    }
+  }
+  let shopTab="upg";
+  function renderShop(){
+    $("shop-money").textContent="$"+Game.money;
+    $("tab-upg").classList.toggle("sel",shopTab==="upg");
+    $("tab-sup").classList.toggle("sel",shopTab==="sup");
+    const w=$("shop-list"); w.innerHTML="";
+    if (shopTab==="upg"){
+      for (const u of Data.UPGRADES){
+        const owned=Save.data.upgrades[u.id];
+        const locked=u.req&&!Save.data.upgrades[u.req];
+        if (locked&&!owned) continue;
+        const d=document.createElement("div"); d.className="shop-item"+(owned?" owned":"");
+        d.innerHTML=`<div class="si-info"><div class="si-name">${u.name}</div><div class="si-desc">${u.desc}</div></div>`;
+        const b=document.createElement("button"); b.className="si-buy";
+        b.textContent=owned?"OWNED":"$"+u.cost;
+        b.disabled=owned||Game.money<u.cost;
+        b.onclick=()=>{ Game.money-=u.cost; Save.data.upgrades[u.id]=true; Save.save(); Sound.fx.bell(); renderShop(); };
+        d.appendChild(b); w.appendChild(d);
+      }
+    } else {
+      for (const s of Data.SUPPLIES){
+        const have=Save.data.supplies[s.id]||0;
+        const d=document.createElement("div"); d.className="shop-item";
+        d.innerHTML=`<div class="si-info"><div class="si-name">${s.name} <span style="color:#8a8478">(have ${have})</span></div><div class="si-desc">${s.desc}</div></div>`;
+        const b=document.createElement("button"); b.className="si-buy";
+        b.textContent="$"+s.cost;
+        b.disabled=Game.money<s.cost||have>=s.max;
+        b.onclick=()=>{ Game.money-=s.cost; Save.data.supplies[s.id]=have+(s.amt||1); Save.save(); Sound.fx.ui(); renderShop(); };
+        d.appendChild(b); w.appendChild(d);
+      }
+    }
+  }
+  $("tab-upg").onclick=()=>{shopTab="upg";renderShop();};
+  $("tab-sup").onclick=()=>{shopTab="sup";renderShop();};
+
+  function renderMastery(){
+    const w=$("mastery-list"); w.innerHTML="";
+    const seenNight=Math.max(Save.data.bestNight+1, Save.data.runNight);
+    for (const [k,r] of Object.entries(Data.RECIPES)){
+      const locked=r.unlock>seenNight;
+      const d=document.createElement("div"); d.className="mrow"+(locked?" locked":"");
+      const lvl=Mastery.level(k), pr=Mastery.progress(k);
+      d.innerHTML=locked
+        ? `<div class="mname">??????</div><div class="mbar"><div style="width:0%"></div></div><div class="mlvl">Night ${r.unlock}</div>`
+        : `<div class="mname">${r.name}</div><div class="mbar"><div style="width:${pr*100}%"></div></div><div class="mlvl">${lvl>=5?"★ SIG":"Lv."+lvl}</div>`;
+      w.appendChild(d);
+    }
+  }
+  function renderStats(){
+    const D=Save.data, w=$("stats-list");
+    w.innerHTML=["Best night reached|"+D.bestNight, "Longest chain|"+D.bestChain,
+      "Meals served|"+D.totalServed, "Perfect meals|"+D.totalPerfect,
+      "Craving matches|"+D.craveServed, "Nights survived|"+D.totalNights]
+      .map(s=>{const [a,b]=s.split("|");return `<div class="kv"><span>${a}</span><b>${b}</b></div>`;}).join("");
+    const aw=$("ach-list");
+    aw.innerHTML="<div class='small' style='margin-bottom:4px'>ACHIEVEMENTS</div>"+Data.ACHIEVEMENTS.map(a=>{
+      const got=D.achievements[a.id];
+      return `<div class="kv" style="${got?"":"opacity:.4"}"><span>${got?"🏆":"—"} ${a.name}</span><span class="small">${a.desc}</span></div>`;
+    }).join("");
+  }
+  function summary(){
+    const D=Save.data;
+    const lines=[
+      `<div class="rc">LAST CALL DINER</div><div class="rc">NIGHT ${Game.night} — CLOSED 6:00 AM</div><div class="dots"></div>`,
+      `<div class="rl"><span>Meals served</span><span>${Orders.served}</span></div>`,
+      `<div class="rl"><span>Tickets lost</span><span>${Orders.missed}</span></div>`,
+      `<div class="rl"><span>Best chain</span><span>${D.bestChain}</span></div>`,
+      `<div class="rl"><span>Earned tonight</span><span>$${Game.nightEarnings}</span></div>`,
+      `<div class="dots"></div><div class="rl"><span>WALLET</span><span>$${Game.money}</span></div>`,
+    ];
+    let creep="thank you for cooking";
+    if (Game.night>=5) creep="they are learning your name";
+    else if (Game.night>=3) creep="they want you to stay";
+    if (Orders.missed===0) achieve("nomiss");
+    lines.push(`<div class="creepy">${creep}</div>`);
+    $("sum-receipt").innerHTML=lines.join("");
+    $("sum-title").textContent=`6:00 AM — NIGHT ${Game.night} SURVIVED`;
+  }
+  function gameoverReceipt(){
+    $("go-receipt").innerHTML=`<div class="rc">${Data.GAMEOVER_LINES.join("<br>")}</div>`
+      +`<div class="dots"></div><div class="rl"><span>Survived until</span><span>${clockStr(Game.gameMin)}</span></div>`
+      +`<div class="rl"><span>Night</span><span>${Game.night}</span></div>`;
+  }
+  function bindSettings(){
+    const S=Save.data.settings;
+    $("set-master").value=S.master*100; $("set-amb").value=S.amb*100; $("set-sfx").value=S.sfx*100;
+    const sync=()=>{ Sound.applyVolumes(); Save.save(); };
+    $("set-master").oninput=e=>{S.master=e.target.value/100;sync();};
+    $("set-amb").oninput=e=>{S.amb=e.target.value/100;sync();};
+    $("set-sfx").oninput=e=>{S.sfx=e.target.value/100;sync();};
+    const applyNoflick=()=>{ if (document.body) document.body.classList.toggle("noflick", S.flicker); };
+    const tog=(id,key)=>{
+      const el=$(id);
+      const paint=()=>{ el.classList.toggle("on",S[key]); el.textContent=S[key]?"ON":"OFF"; };
+      paint();
+      el.onclick=()=>{ S[key]=!S[key]; paint(); Save.save(); Sound.fx.ui(); if (key==="flicker") applyNoflick(); };
+    };
+    tog("set-shake","shake"); tog("set-flicker","flicker"); tog("set-contrast","contrast");
+    applyNoflick();
+  }
+  return { show, toast, achieve, hud, renderTickets, renderShop, renderMastery, renderStats,
+    summary, gameoverReceipt, bindSettings, clockStr };
+})();
+
+/* ================================= GAME ================================= */
+const Game = (() => {
+  const NIGHT_START=137, NIGHT_END=360;
+  const SEC_PER_GAMEMIN=1.6;
+  let state="title";
+  let gameMin=NIGHT_START, night=1, fuel=5, power=true;
+  let doomT=0, nightEarnings=0, lastT=0, hudT=0, tutStep=0, tutT=0;
+  const holdFix={key:null, progress:0, need:1.2, x:0, y:0};
+  let heldFillSt=null;
+
+  const G={
+    onKey(code){
+      if (code==="Escape"){
+        if (state==="playing"){ if (Line.tray) Line.closeTray(); else pause(); }
+        else if (state==="paused") resume();
+      }
+      if (state==="playing" && /^Digit[1-5]$/.test(code)){
+        const ids=["grill","stove","fryer","coffee","prep"];
+        const st=World.stationById(ids[parseInt(code.slice(5))-1]);
+        if (st) Line.tap(st);
+      }
+    },
+    get money(){ return Save.data.money; },
+    set money(v){ const d=v-Save.data.money; if (d>0) nightEarnings+=d; Save.data.money=v; UI.hud(); },
+    get night(){ return night; }, get gameMin(){ return gameMin; },
+    get fuel(){ return fuel; }, set fuel(v){ fuel=v; },
+    get power(){ return power; }, set power(v){ power=v; },
+    get doomT(){ return doomT; }, get nightEarnings(){ return nightEarnings; },
+    holdFix,
+    boards(){ return Save.data.supplies.boards||0; },
+  };
+
+  function startNight(n){
+    night=n; Save.data.runNight=n; Save.data.runActive=true;
+    gameMin=NIGHT_START; fuel=5; power=true; doomT=0; nightEarnings=0;
+    World.build();
+    Hunger.reset(); Events.reset(); Diner.reset(); Line.reset(); Orders.reset();
+    Hunger.value=Math.min(35, 8+n*2.5);
+    state="playing";
+    UI.show(null);
+    document.getElementById("hud").style.display="block";
+    document.getElementById("vignette").style.display="block";
+    const crt=document.getElementById("crt");
+    crt.style.display="block";
+    crt.classList.toggle("flick", !Save.data.settings.flicker);
+    UI.hud(); UI.renderTickets();
+    UI.toast(Data.NIGHT_INTRO[Math.min(n-1,Data.NIGHT_INTRO.length-1)],"story");
+    Sound.init(); Sound.fx.printer();
+    const newRec=Object.values(Data.RECIPES).find(r=>r.unlock===n);
+    if (newRec&&n>1) setTimeout(()=>UI.toast(`New on the menu: ${newRec.name} — "${newRec.desc}"`,"good"),2500);
+    if (Object.values(Data.RECIPES).every(r=>r.unlock<=n)) UI.achieve("allrec");
+    if (!Save.data.seenTutorial && n===1){ tutStep=0; tutT=1.2; }
+    Save.save();
+  }
+  function endNight(){
+    state="summary";
+    Save.data.totalNights++;
+    Save.data.bestNight=Math.max(Save.data.bestNight,night);
+    if (night>=1) UI.achieve("night1");
+    if (night>=7) UI.achieve("night7");
+    Save.data.runNight=night+1; Save.save();
+    Sound.setSizzle(false);
+    UI.summary(); UI.show("scr-summary");
+    document.getElementById("hud").style.display="none";
+    document.getElementById("crt").style.display="none";
+    Sound.fx.bell();
+  }
+  function gameOver(){
+    state="gameover";
+    Save.data.bestNight=Math.max(Save.data.bestNight,night);
+    Save.data.money=Math.floor(Save.data.money*0.5);
+    Save.data.runNight=1; Save.data.runActive=false; Save.save();
+    Sound.setSizzle(false); Line.reset();
+    UI.gameoverReceipt(); UI.show("scr-gameover");
+    document.getElementById("hud").style.display="none";
+    document.getElementById("crt").style.display="none";
+    Sound.fx.powerDown(); Sound.fx.scratch();
+  }
+  function pause(){ if (state!=="playing") return; state="paused";
+    const fl=["The rain keeps falling.","Something shifts its weight outside.","The grill hisses softly.","You could swear the printer just breathed."];
+    document.getElementById("pause-flavor").textContent=fl[Math.floor(Math.random()*fl.length)];
+    UI.show("scr-pause"); }
+  function resume(){ if (state!=="paused") return; state="playing"; UI.show(null); }
+
+  const TUT=[
+    "A ticket's up. TAP the matching station to start it.",
+    "Watch the bar above the station — TAP when it's in the green.",
+    "Green flash = plated. TAP the plate to serve. That feeds... them.",
+    "HOLD stations to pour — and to fix fires, spills, and breakers.",
+    "Everything cooks at once. Everything will need you at once.",
+  ];
+  function tutorial(dt){
+    if (Save.data.seenTutorial||tutStep>=TUT.length) return;
+    tutT-=dt;
+    if (tutT<=0){ UI.toast(TUT[tutStep],"story"); tutStep++; tutT=8;
+      if (tutStep>=TUT.length){ Save.data.seenTutorial=true; Save.save(); } }
+  }
+
+  /* ---------- input routing: taps ---------- */
+  function handleTap(x,y){
+    if (Line.tray){
+      const hit=Render.trayHit(x,y);
+      if (hit){
+        if (hit.act==="close") Line.closeTray();
+        else Line.tapSeq(hit.idx);
+        return;
+      }
+      Line.closeTray(); // tap-away closes; fall through so the line stays responsive
+    }
+    const st=World.stationAt(x,y);
+    if (st){ Line.tap(st); return; }
+    const w=World.windowAt(x,y);
+    if (w && w.hp<3) Sound.fx.tick(); // hold to board — tap acknowledges
+  }
+
+  /* ---------- input routing: holds ---------- */
+  function holdTargetAt(x,y){
+    const st=World.stationAt(x,y);
+    if (st){
+      if (World.puddleOn(st.id)) return {key:"mop:"+st.id, x:st.x+st.w/2, y:st.y-4, fn(){
+        const p=World.puddleOn(st.id); World.puddles.splice(World.puddles.indexOf(p),1);
+        Sound.fx.pour(); UI.toast("Mopped. The floor forgets.","good"); }};
+      if (st.id==="gen"){
+        if (Events.active("surge")) return {key:"surge", x:st.x+st.w/2, y:st.y-4, fn(){ Events.resolve("surge"); }};
+        if (Events.active("blackout")&&(fuel>0.2||Save.data.supplies.fuel>0))
+          return {key:"gen", x:st.x+st.w/2, y:st.y-4, fn(){
+            if (fuel<=0.2){ Save.data.supplies.fuel--; fuel=4; Save.save(); }
+            Events.resolve("blackout"); }};
+        if (!Events.active("blackout")&&fuel<6.5&&Save.data.supplies.fuel>0)
+          return {key:"refuel", x:st.x+st.w/2, y:st.y-4, fn(){
+            Save.data.supplies.fuel--; fuel=Math.min(8,fuel+4); Save.save();
+            Sound.fx.pour(); UI.toast(`Refueled. (${Save.data.supplies.fuel} cans left)`,"good"); }};
+      }
+      if (st.id==="printer"&&Events.active("printerJam")) return {key:"jam", x:st.x+st.w/2, y:st.y-6, fn(){ Events.resolve("printerJam"); }};
+      if (st.id==="stove"&&Events.active("gasLeak")) return {key:"gas", x:st.x+st.w/2, y:st.y-4, fn(){ Events.resolve("gasLeak"); }};
+      if (st.id==="prep"&&Events.active("collapse")) return {key:"collapse", x:st.x+st.w/2, y:st.y-4, fn(){ Events.resolve("collapse"); }};
+      return null;
+    }
+    const w=World.windowAt(x,y);
+    if (w && w.hp<3 && G.boards()>0)
+      return {key:"win:"+w.tx+"_"+w.ty, x:w.tx*16+8, y:w.ty*16+20, fn(){
+        w.hp=3; w.boarded=true; Save.data.supplies.boards--; Save.save();
+        Sound.fx.boardUp(); UI.toast("Window boarded. It'll hold. Probably.","good"); }};
+    return null;
+  }
+  function updateHold(dt){
+    if (!Input.ptr.down){
+      if (heldFillSt){ Line.releaseFill(heldFillSt); heldFillSt=null; }
+      holdFix.key=null; holdFix.progress=0;
+      return;
+    }
+    const x=Input.ptr.x, y=Input.ptr.y;
+    // holds never leak through the open assembly tray
+    if (Line.tray && Render.trayHit(x,y)){
+      if (heldFillSt){ Line.releaseFill(heldFillSt); heldFillSt=null; }
+      holdFix.key=null; holdFix.progress=0;
+      return;
+    }
+    const st=World.stationAt(x,y);
+    // pouring takes priority over fixing at the same station
+    if (st && st.cook && !World.puddleOn(st.id) && Line.holdFill(st, dt)){ heldFillSt=st; holdFix.key=null; holdFix.progress=0; return; }
+    if (heldFillSt && heldFillSt!==st){ Line.releaseFill(heldFillSt); heldFillSt=null; }
+    const tgt=holdTargetAt(x,y);
+    if (!tgt){ holdFix.key=null; holdFix.progress=0; return; }
+    if (holdFix.key!==tgt.key){ holdFix.key=tgt.key; holdFix.progress=0; Sound.fx.tick(); }
+    holdFix.x=tgt.x; holdFix.y=tgt.y;
+    if (st) st.hot=Math.max(st.hot,0.15); // visible grip on the thing being fixed
+    holdFix.progress+=dt;
+    if (holdFix.progress>=holdFix.need){
+      holdFix.key=null; holdFix.progress=0;
+      tgt.fn();
+    }
+  }
+
+  /* ---------- main loop ---------- */
+  function tick(t){
+    requestAnimationFrame(tick);
+    const dt=Math.min(0.05,(t-lastT)/1000||0.016); lastT=t;
+    if (state!=="playing"){ if (state==="paused") Render.frame(0); return; }
+    const gdt=dt/SEC_PER_GAMEMIN;
+
+    for (const tp of Input.consumeTaps()) handleTap(tp.x,tp.y);
+    updateHold(dt);
+    World.update(dt);
+    Line.update(dt);
+
+    gameMin+=gdt;
+    Hunger.update(gdt);
+    Orders.update(gdt);
+    Events.update(gdt);
+    Diner.update(gdt);
+    tutorial(dt);
+
+    if (Hunger.value>=99.9){
+      if (doomT===0){ UI.toast("THEY ARE AT EVERY WINDOW. FEED THEM. NOW.","bad"); Sound.fx.alarm(); }
+      doomT+=gdt;
+      if (Math.random()<dt*2){ Sound.fx.doorShake(); Render.shake(3); }
+      if (doomT>8){ gameOver(); return; }
+    } else if (doomT>0 && Hunger.value<96){ doomT=0; UI.toast("They pull back. Barely.","story"); }
+
+    if (gameMin>=NIGHT_END){ endNight(); return; }
+
+    hudT-=dt;
+    if (hudT<=0){ hudT=0.25; UI.hud();
+      Sound.setAmbience(Data.STAGES[Hunger.stageIndex()].amb, power, Events.active("storm")?1:0.3);
+      UI.renderTickets();
+    }
+    Render.frame(dt);
+  }
+
+  function boot(){
+    UI.bindSettings();
+    const $=id=>document.getElementById(id);
+    $("bt-start").onclick=()=>{ Sound.init(); Sound.fx.ui(); startNight(Save.data.runNight||1); };
+    $("bt-howto").onclick=()=>{ Sound.fx.ui(); UI.show("scr-howto"); };
+    $("bt-settings").onclick=()=>{ Sound.fx.ui(); UI.show("scr-settings"); };
+    $("bt-mastery").onclick=()=>{ Sound.fx.ui(); UI.renderMastery(); UI.show("scr-mastery"); };
+    $("bt-stats").onclick=()=>{ Sound.fx.ui(); UI.renderStats(); UI.show("scr-stats"); };
+    document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>{ Sound.fx.ui();
+      UI.show(state==="title"?"scr-title":state==="paused"?"scr-pause":"scr-title"); });
+    $("btn-pause").onclick=()=>{ Sound.fx.ui(); pause(); };
+    $("btn-orders").onclick=()=>{ Sound.fx.tick();
+      const t=document.getElementById("tickets");
+      t.classList.toggle("collapsed");
+      $("btn-orders").classList.toggle("open", !t.classList.contains("collapsed")); };
+    document.addEventListener("gesturestart",e=>e.preventDefault());
+    document.addEventListener("dblclick",e=>e.preventDefault());
+    $("bt-resume").onclick=()=>{ Sound.fx.ui(); resume(); };
+    $("bt-pause-settings").onclick=()=>{ Sound.fx.ui(); UI.show("scr-settings"); };
+    $("bt-quit").onclick=()=>{ Sound.fx.ui(); state="title"; Sound.setSizzle(false); Line.reset();
+      document.getElementById("hud").style.display="none";
+      document.getElementById("crt").style.display="none"; UI.show("scr-title"); };
+    $("bt-shop").onclick=()=>{ Sound.fx.ui(); UI.renderShop(); UI.show("scr-shop"); };
+    $("bt-nextnight").onclick=()=>{ Sound.fx.ui(); startNight(night+1); };
+    $("bt-retry").onclick=()=>{ Sound.fx.ui(); startNight(1); };
+    $("bt-title").onclick=()=>{ Sound.fx.ui(); state="title"; UI.show("scr-title"); };
+    if (Save.data.bestNight>0)
+      document.getElementById("title-sub").textContent=
+        `Best: night ${Save.data.bestNight}. They remember you${Save.data.runActive?` — continue night ${Save.data.runNight}`:""}.`;
+    document.addEventListener("visibilitychange",()=>{ if (document.hidden){ Save.save(); if (state==="playing") pause(); } });
+    requestAnimationFrame(tick);
+  }
+  boot();
+
+  return G;
+})();
+/* LAST CALL 2.1 — the line never stops (bugfix & polish: retina-sharp
+   rendering, calm readable tickets, reliable multi-touch, clarity-first
+   post-processing) */
+
+</script>
+</body>
+</html>
